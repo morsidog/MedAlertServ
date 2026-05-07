@@ -1,0 +1,318 @@
+:root {
+  --bg: #f0f0ff;
+  --bg2: #e8e8fa;
+  --surface: #ffffff;
+  --surface2: #ededfc;
+  --btn-enfacis: #b9e0ff;
+  --border: #c4c4f0;
+  --violet: #7c3aed;
+  --violet-light: #a78bfa;
+  --blue: #4f46e5;
+  --blue-light: #818cf8;
+  --text: #1e1b4b;
+  --text-muted: #6b7280;
+  --radius: 16px;
+  --font: 'Nunito', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --shadow: 0 2px 12px rgba(124, 58, 237, 0.08);
+  --shadow-md: 0 4px 20px rgba(124, 58, 237, 0.13);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font);
+  background-color: var(--bg);
+  color: var(--text);
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 60px 1fr;
+  grid-template-areas: "h1" "m1";
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.toolbar {
+  grid-area: h1;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  box-shadow: 0 2px 10px rgba(79, 70, 229, 0.3);
+}
+
+#toolbar .logo {
+  display: flex;
+  align-items: center;
+}
+
+#toolbar .logo svg rect {
+  fill: white;
+}
+
+#toolbar .logo svg rect:last-child {
+  fill: rgba(255,255,255,0.7);
+}
+
+.titulo-toolbar {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.01em;
+}
+
+main {
+  grid-area: m1;
+  overflow: hidden;
+  position: relative;
+}
+
+#mainmenu {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 18px;
+  gap: 18px;
+  overflow-y: auto;
+}
+
+.menu-header {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.titulo {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.menu {
+  position: relative;
+}
+
+.extensor {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--blue);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.18s, border-color 0.18s;
+}
+
+.extensor:active {
+  box-shadow: none;
+  border-color: var(--violet-light);
+}
+
+.chevron {
+  transition: transform 0.22s ease;
+  color: var(--violet-light);
+}
+
+.extensor.open .chevron {
+  transform: rotate(180deg);
+}
+
+.opc {
+  list-style: none;
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 8px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  box-shadow: var(--shadow-md);
+  animation: fadeSlide 0.18s ease;
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.opc li {
+  display: flex;
+}
+
+.opc li button {
+  width: 100%;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.opc li button:active {
+  background-color: var(--surface2);
+  color: var(--violet);
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+article.toma {
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow);
+}
+
+article.proxima {
+  border-left: 4px solid var(--violet);
+  background: linear-gradient(to right, #f5f3ff, #ffffff);
+}
+
+article.ultima {
+  border-left: 4px solid var(--blue-light);
+  background: linear-gradient(to right, #eef2ff, #ffffff);
+}
+
+.badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: var(--mono);
+}
+
+.proxima .badge { color: var(--violet); }
+.ultima .badge  { color: var(--blue); }
+
+.medicamento {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-family: var(--mono);
+}
+
+.proxima .hora { color: var(--violet); font-weight: 600; }
+.ultima .hora  { color: var(--blue-light); font-weight: 600; }
+
+#alarmas,
+#cuenta,
+#cuenta >div,
+#informacion {
+  display: none;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg);
+  flex-direction: column;
+  padding: 22px 18px;
+  gap: 18px;
+  overflow-y: auto;
+}
+
+.sec-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--violet);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-back:active {
+  background-color: var(--surface2);
+}
+.btn-n:active {
+  background-color: var(--surface2);
+}
+.btn-n {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 38px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--violet);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+#alarmlist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+form>div.field input[type="text"]:invalid + span,
+form>div.field input[type="number"]:invalid + span{
+  font-size: 0.75rem;
+  color: #e53935;
+  display: inline;
+}
+.field{
+  display: flex;
+  flex-direction: column;
+}
+form .keypad{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 20px;
+
+}
+form .keypad :last-child{
+  background-color: var(--btn-enfacis);
+}

@@ -1,0 +1,11 @@
+const bcrypt = require('bcrypt');
+
+// Al registrar
+const hash = await bcrypt.hash(contraseña, 10);
+await db.query('CALL registrarse(?, ?, ?)', [nombre, correo, hash]);
+
+// Al iniciar sesión — aquí NO puedes comparar en el procedure
+// porque el hash es diferente cada vez, se compara en JS:
+const [rows] = await db.query('SELECT * FROM cuentas WHERE correo = ?', [correo]);
+const cuenta = rows[0];
+const valido = await bcrypt.compare(contraseña, cuenta.contraseña);
