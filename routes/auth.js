@@ -1,32 +1,28 @@
-const express = require('express');
-const router = express.Router();
-const db = require('../db/database');
+// routes/auth.js
+const express          = require('express');
+const router           = express.Router();
+const authService      = require('../application/authService');
+const { generarToken } = require('../middlewares/auth');
 
-// POST /api/auth/registro
-router.post('/registro', async (req, res) => {
+router.post('/registro', async (req, res, next) => {
   try {
-    const { nombre, correo, contraseña } = req.body;
-    if (!correo || !contraseña || !nombre) {
-      return res.status(400).json({ ok: false, error: 'Correo, Nombre y contraseña son obligatorios' });
-    }
-    const [rows] = await db.query('CALL registrarse(?, ?, ?)', [nombre, correo, contraseña]);
-    res.status(201).json({ok: true ,cuenta:rows[0][0]});
+    const { nombre, correo, contraseña, rol } = req.body;
+    const cuenta = await authService.registrarse(nombre, correo, contraseña, rol);
+    const token  = generarToken(cuenta);
+    res.status(201).json({ ok: true, cuenta, token });
   } catch (err) {
-    res.status(400).json({ok:false, error: err.message });
+    next(err);
   }
 });
 
-// POST /api/auth/login
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
   try {
     const { correo, contraseña } = req.body;
-     if (!correo || !contraseña) {
-      return res.status(400).json({ ok: false, error: 'Correo y contraseña son obligatorios' });
-    }
-    const [rows] = await db.query('CALL iniciar_sesion(?, ?)', [correo, contraseña]);
-    res.status(200).json({ok: true ,cuenta:rows[0][0]});
+    const cuenta = await authService.iniciarSesion(correo, contraseña);
+    const token  = generarToken(cuenta);
+    res.status(200).json({ ok: true, cuenta, token });
   } catch (err) {
-    res.status(400).json({ ok:false, error: err.message });
+    next(err);
   }
 });
 

@@ -1,15 +1,36 @@
-const express = require('express');
-const path = require('path');
-const PORT = process.env.PORT || 3000;
+// server.js
 require('dotenv').config();
+const express = require('express');
+const cors    = require('cors');
+const path    = require('path');
 
-const app = express();
+const app  = express();
+const PORT = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/api/auth', require('./routes/auth'));
+
+// ── Ruta raíz ────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'MedAlert.html'));
+});
+
+// ── Rutas ────────────────────────────────────────────────────────
+app.use('/api/auth',         require('./routes/auth'));
+app.use('/api/arduino',      require('./routes/arduino'));
+app.use('/api/pacientes',    require('./routes/pacientes'));
+app.use('/api/medicamentos', require('./routes/medicamentos'));
+app.use('/api/horarios',     require('./routes/horarios'));
+app.use('/api/tomas',       require('./routes/tomas'));    // ← NUEVO
+app.use('/api',              require('./routes/alarma'));
+
+// ── Error handler (siempre al final) ─────────────────────────────
+app.use(require('./middlewares/errorHandler'));
+
+// ── Cron ─────────────────────────────────────────────────────────
+require('./cron');
 
 app.listen(PORT, () => {
   console.log(`Servidor en puerto ${PORT}`);
 });
-

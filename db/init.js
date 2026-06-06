@@ -1,61 +1,67 @@
+// db/init.js
+// Ejecutar una sola vez: node db/init.js
+// Lee init.sql y aplica cada sentencia en orden.
+
 require('dotenv').config();
-const db = require('./database');
+const fs   = require('fs');
+const path = require('path');
+const db   = require('./database');
 
 async function init() {
-  try {
+  const sqlFile = path.join(__dirname, 'init.sql');
+  const raw     = fs.readFileSync(sqlFile, 'utf8');
 
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS tipos_cuenta (
-        id   INT AUTO_INCREMENT PRIMARY KEY,
-        tipo VARCHAR(50) NOT NULL
-      )
-    `);
-    console.log('✅ tipos_cuenta creada');
+  // Dividir en sentencias individuales respetando DELIMITER $$
+  const statements = splitStatements(raw);
+  let ok = 0;
 
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS cuentas (
-        id          INT AUTO_INCREMENT PRIMARY KEY,
-        nombre      VARCHAR(100) NOT NULL,
-        correo      VARCHAR(100) UNIQUE NOT NULL,
-        contraseña  VARCHAR(255) NOT NULL,
-        id_paciente INT,
-        tipo        INT NOT NULL,
-        FOREIGN KEY (id_paciente) REFERENCES cuentas(id),
-        FOREIGN KEY (tipo)        REFERENCES tipos_cuenta(id)
-      )
-    `);
-    console.log('✅ cuentas creada');
-
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS alarmas_programadas (
-        id            INT AUTO_INCREMENT PRIMARY KEY,
-        id_paciente   INT NOT NULL,
-        medicina      VARCHAR(100) NOT NULL,
-        configuracion JSON,
-        FOREIGN KEY (id_paciente) REFERENCES cuentas(id)
-      )
-    `);
-    console.log('✅ alarmas_programadas creada');
-
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS registro (
-        id        INT AUTO_INCREMENT PRIMARY KEY,
-        id_alarma INT NOT NULL,
-        estado    VARCHAR(50) NOT NULL,
-        fecha     DATE NOT NULL,
-        hora      TIME NOT NULL,
-        FOREIGN KEY (id_alarma) REFERENCES alarmas_programadas(id)
-      )
-    `);
-    console.log('✅ registro creada');
-
-    console.log('\n🎉 Todas las tablas creadas correctamente');
-    process.exit(0);
-
-  } catch (err) {
-    console.error('❌ Error:', err.message);
-    process.exit(1);
+  for (const stmt of statements) {
+    const trimmed = stmt.trim();
+    if (!trimmed || trimmed.startsWith('--')) continue;
+    try {
+      await db.query(trimmed);
+      ok++;
+    } catch (err) {
+      // Ignorar "ya existe" en INSERT IGNORE / IF NOT EXISTS
+      if (err.code === 'ER_TABLE_EXISTS_ERROR') continue;
+      console.error(`❌ Error en sentencia:\n${trimmed.substring(0, 120)}...\n→ ${err.message}`);
+      process.exit(1);
+    }
   }
+
+  console.log(`✅ Init completo — ${ok} sentencias ejecutadas`);
+  process.exit(0);
+}
+
+/**
+ * Divide el SQL en sentencias individuales.
+ * Maneja bloques DELIMITER $$ ... $$ correctamente.
+ */
+function splitStatements(sql) {
+  const result = [];
+  let delimiter = ';';
+  let current   = '';
+
+  for (const line of sql.split('\n')) {
+    const trimLine = line.trim();
+
+    // Cambio de DELIMITER
+    if (/^DELIMITER\s+(\S+)/i.test(trimLine)) {
+      delimiter = trimLine.match(/^DELIMITER\s+(\S+)/i)[1];
+      continue;
+    }
+
+    current += line + '\n';
+
+    if (current.trimEnd().endsWith(delimiter)) {
+      // Quitar el delimiter del final antes de guardar
+      result.push(current.trimEnd().slice(0, -delimiter.length));
+      current = '';
+    }
+  }
+
+  if (current.trim()) result.push(current);
+  return result;
 }
 
 init();

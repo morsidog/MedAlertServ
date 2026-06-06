@@ -1,0 +1,48 @@
+const db = require('../db/database');
+
+async function crear(id_paciente, medicina, configuracion) {
+  try {
+    const [rows] = await db.query(
+      'CALL insertar_alarma(?, ?, ?)',
+      [id_paciente, medicina, configuracion ?? null]
+    );
+    return rows[0][0];
+  } catch (err) {
+    if (err.sqlState === '45000') {
+      throw { status: 400, message: err.message };
+    }
+    throw { status: 500, message: 'Error interno del servidor' };
+  }
+}
+
+async function obtenerPorPaciente(id_paciente) {
+  try {
+    const [rows] = await db.query(
+      'CALL obtener_alarmas_paciente(?)',
+      [id_paciente]
+    );
+    return rows[0];
+  } catch (err) {
+    if (err.sqlState === '45000') {
+      throw { status: 400, message: err.message };
+    }
+    throw { status: 500, message: 'Error interno del servidor' };
+  }
+}
+
+async function obtenerRegistrosPorPaciente(id_paciente) {
+  try {
+    const [rows] = await db.query(
+      'CALL obtener_registros_paciente(?)',
+      [id_paciente]
+    );
+    return rows[0];
+  } catch (err) {
+    if (err.sqlState === '45000') {
+      throw { status: 400, message: err.message };
+    }
+    throw { status: 500, message: 'Error interno del servidor' };
+  }
+}
+
+module.exports = { crear, obtenerPorPaciente, obtenerRegistrosPorPaciente };
