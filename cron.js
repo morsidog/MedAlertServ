@@ -1,17 +1,18 @@
-// cron.js  (raíz del proyecto, junto a server.js)
-// Se importa una sola vez desde server.js con: require('./cron')
+// cron.js
+const cron                    = require('node-cron');
+const { checkHorarios }       = require('./application/cronService');
+const { checkEscalamiento }   = require('./application/notificacionService');
 
-const cron           = require('node-cron');
-const { checkHorarios } = require('./application/cronService');
-
-// Cada minuto en punto: segundo 0 de cada minuto
-// Expresión: '0 * * * * *'  →  s m h d M dow
+// Cada minuto — detecta horarios y dispara comandos al ESP32
 cron.schedule('0 * * * * *', async () => {
-  try {
-    await checkHorarios();
-  } catch (err) {
-    console.error('[Cron] Error inesperado:', err.message);
-  }
+  try { await checkHorarios(); }
+  catch (err) { console.error('[Cron] checkHorarios error:', err.message); }
 });
 
-console.log('[Cron] ✅ checkHorarios activo — evaluando cada minuto');
+// Cada minuto — revisa escalamiento de alertas FCM
+cron.schedule('0 * * * * *', async () => {
+  try { await checkEscalamiento(); }
+  catch (err) { console.error('[Cron] checkEscalamiento error:', err.message); }
+});
+
+console.log('[Cron] ✅ checkHorarios + checkEscalamiento activos — cada minuto');
