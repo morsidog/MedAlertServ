@@ -1,7 +1,7 @@
 // application/authService.js
 const authRepository = require('../infrastructure/authRepository');
 
-const ROLES_PUBLICOS = { medico: 2, paciente: 3, familiar: 4 };
+const ROLES_PUBLICOS = { medico: 3, paciente: 2, familiar: 4 };
 
 async function registrarse(nombre, correo, contraseña, rol = 'paciente') {
   if (!nombre || !correo || !contraseña) {
