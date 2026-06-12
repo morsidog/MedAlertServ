@@ -675,6 +675,8 @@ async function verDetallePaciente(id, nombre) {
 function tabDetalle(tab) {
   ['info','familiares','adherencia'].forEach(t => {
     document.getElementById('detalle-' + t).style.display    = t === tab ? 'flex' : 'none';
+    document.getElementById('detalle-' + t).style.flexDirection = 'column';
+    document.getElementById('detalle-' + t).style.gap         = '10px';
     document.getElementById('tab-' + t).classList.toggle('active', t === tab);
   });
   if (tab === 'familiares') cargarFamiliares();
