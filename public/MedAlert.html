@@ -379,7 +379,7 @@
           <div id="cuenta-paciente-info" class="campo">
             <span id="cuenta-paciente-texto" style="font-size:13px;color:var(--ink3)">Sin cuenta vinculada</span>
           </div>
-          <div id="form-crear-cuenta-paciente" style="display:none">
+          <div id="form-crear-cuenta-paciente" class="cuenta-form" style="display:none">
             <div class="campo"><label>Nombre</label><input type="text" id="cp-nombre" placeholder="Nombre completo"/></div>
             <div class="campo"><label>Correo</label><input type="email" id="cp-correo" placeholder="correo@ejemplo.com"/></div>
             <div class="campo"><label>Contraseña temporal</label><input type="password" id="cp-pass" placeholder="Mínimo 8 caracteres"/></div>
@@ -388,7 +388,7 @@
               <button class="btn-cuenta" onclick="crearCuentaPaciente()" type="button">Crear cuenta</button>
             </div>
           </div>
-          <div id="form-vincular-cuenta-paciente" style="display:none">
+          <div id="form-vincular-cuenta-paciente" class="cuenta-form" style="display:none">
             <div class="campo"><label>Correo de la cuenta existente</label><input type="email" id="vc-correo" placeholder="correo@ejemplo.com"/></div>
             <div class="keypad">
               <button class="btn-cuenta outline" onclick="document.getElementById('form-vincular-cuenta-paciente').style.display='none'" type="button">Cancelar</button>
@@ -396,8 +396,8 @@
             </div>
           </div>
           <div class="keypad" id="btns-cuenta-paciente">
-            <button class="btn-cuenta outline" onclick="document.getElementById('form-vincular-cuenta-paciente').style.display='flex';document.getElementById('btns-cuenta-paciente').style.display='none'" type="button">Vincular cuenta existente</button>
-            <button class="btn-cuenta" onclick="document.getElementById('form-crear-cuenta-paciente').style.display='flex';document.getElementById('btns-cuenta-paciente').style.display='none'" type="button">Crear cuenta nueva</button>
+            <button class="btn-cuenta outline" onclick="document.getElementById('form-vincular-cuenta-paciente').style.display='block';document.getElementById('btns-cuenta-paciente').style.display='none'" type="button">Vincular cuenta existente</button>
+            <button class="btn-cuenta" onclick="document.getElementById('form-crear-cuenta-paciente').style.display='block';document.getElementById('btns-cuenta-paciente').style.display='none'" type="button">Crear cuenta nueva</button>
           </div>
         </div>
       </div>
