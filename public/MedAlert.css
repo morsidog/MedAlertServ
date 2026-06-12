@@ -6,9 +6,9 @@
 ══════════════════════════════════════════════ */
 :root{
   /* Morado-grisáceo (acento secundario) */
-  --p:#4c4a63;--p1:#5b5878;--p2:#7f6c91;--p3:#9b90ad;--p4:#c8c6d6;--p5:#eceaf1;--p6:#f5f4f8;
+  --p:#4c4a63;--p1:#5b5878;--p2:#6f6c91;--p3:#9290ad;--p4:#c8c6d6;--p5:#eceaf1;--p6:#f5f4f8;
   /* Texto / líneas — casi negro */
-  --ink:#15151a;--ink2:#3f3a44;--ink3:#6b6b76;--ink4:#a7a7b0;--ink5:#d6d6dc;
+  --ink:#15151a;--ink2:#3a3a44;--ink3:#6b6b76;--ink4:#a7a7b0;--ink5:#d6d6dc;
   --white:#fff;--bg:#fafafb;
   /* Azul-grisáceo (acento primario) */
   --blue:#3e5c76;--blue-soft:#e7ecf1;--blue-line:#33414d;
@@ -310,6 +310,22 @@ article.ultima .badge{color:var(--p3)}
 .med-info{flex:1}
 .med-nombre{font-size:13px;font-weight:600}
 .med-dosis{font-size:11px;color:var(--ink3);font-family:var(--mono);margin-top:2px}
+
+#detalle-adherencia .formulario{
+  overflow:hidden;
+}
+#detalle-adherencia canvas{
+  max-width:100%!important;
+  width:100%!important;
+}
+#detalle-adherencia .filtro-select{
+  max-width:140px;
+}
+@media (max-width:480px){
+  #detalle-adherencia > .formulario > div:first-child{
+    flex-direction:column;align-items:flex-start;gap:8px;
+  }
+}
 
 /* ══════════════════════════════════════════════
    FILTROS
