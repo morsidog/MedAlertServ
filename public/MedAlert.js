@@ -165,7 +165,7 @@ function renderTomasHoy(tomas) {
 async function confirmarToma(idToma) {
   try {
     await apiFetch(`/api/tomas/${idToma}/confirm`, 'POST', { metodo: 'app' });
-    mostrarToast('Toma confirmada ✓', 'ok');
+    mostrarToast('Toma confirmada', 'ok');
     cargarTomasHoy();
   } catch (e) {
     mostrarToast(e.message ?? 'Error al confirmar', 'error');
@@ -315,7 +315,7 @@ async function guardarHorario(event) {
   setLoading(btn, true);
   try {
     await apiFetch('/api/horarios', 'POST', body);
-    mostrarToast(_tipoHorario === 'rutina' ? 'Rutina guardada ✓' : 'Toma programada ✓', 'ok');
+    mostrarToast(_tipoHorario === 'rutina' ? 'Rutina guardada' : 'Toma programada', 'ok');
     setLoading(btn, false, label);
     // Resetear tipo a rutina para la próxima vez
     setTipo('rutina');
@@ -381,7 +381,7 @@ async function guardarPaciente(event) {
       diagnostico:      document.getElementById('p-diagnostico').value || null,
       dispositivo_id:   document.getElementById('p-device').value || null,
     });
-    mostrarToast('Paciente guardado ✓', 'ok');
+    mostrarToast('Paciente guardado', 'ok');
     event.target.reset();
     setLoading(btn, false, 'Guardar paciente');
     nav('pacientes');
@@ -424,7 +424,7 @@ async function guardarMedicamento(event) {
       instrucciones: document.getElementById('m-instrucciones').value || null,
       color_pastilla:document.getElementById('m-color').value || null,
     });
-    mostrarToast('Medicamento guardado ✓', 'ok');
+    mostrarToast('Medicamento guardado', 'ok');
     event.target.reset();
     setLoading(btn, false, 'Guardar medicamento');
     nav('medicamentos');
@@ -689,7 +689,7 @@ async function crearCuentaPaciente() {
   if (!nombre || !correo || !contraseña) { mostrarToast('Completa todos los campos', 'error'); return; }
   try {
     await apiFetch(`/api/pacientes/${_detallePacienteId}/cuenta`, 'POST', { nombre, correo, contraseña });
-    mostrarToast('Cuenta creada ✓', 'ok');
+    mostrarToast('Cuenta creada', 'ok');
     document.getElementById('form-crear-cuenta-paciente').style.display = 'none';
     document.getElementById('btns-cuenta-paciente').style.display       = 'flex';
     document.getElementById('cuenta-paciente-texto').textContent        = correo;
@@ -701,7 +701,7 @@ async function vincularCuentaPaciente() {
   if (!correo) { mostrarToast('Ingresa el correo', 'error'); return; }
   try {
     await apiFetch(`/api/pacientes/${_detallePacienteId}/vincular-cuenta`, 'POST', { correo });
-    mostrarToast('Cuenta vinculada ✓', 'ok');
+    mostrarToast('Cuenta vinculada', 'ok');
     document.getElementById('form-vincular-cuenta-paciente').style.display = 'none';
     document.getElementById('btns-cuenta-paciente').style.display          = 'flex';
     document.getElementById('cuenta-paciente-texto').textContent           = correo;
@@ -723,7 +723,7 @@ async function cargarFamiliares() {
       <li class="toma-item">
         <div class="toma-icon pendiente" style="background:var(--p5);color:var(--p1)">F</div>
         <div class="toma-info">
-          <p class="toma-nombre">${f.nombre} ${f.es_principal ? '⭐' : ''}</p>
+          <p class="toma-nombre">${f.nombre} ${f.es_principal ? '(principal)' : ''}</p>
           <p class="toma-meta">${f.correo}</p>
         </div>
         <button class="btn-confirmar" style="background:var(--stop-bg);color:var(--stop)" onclick="desvincularFamiliar(${f.id})" type="button">Quitar</button>
@@ -738,7 +738,7 @@ async function vincularFamiliar() {
   if (!correo) { mostrarToast('Ingresa el correo del familiar', 'error'); return; }
   try {
     await apiFetch(`/api/pacientes/${_detallePacienteId}/familiares`, 'POST', { correo, es_principal });
-    mostrarToast('Familiar agregado ✓', 'ok');
+    mostrarToast('Familiar agregado', 'ok');
     document.getElementById('fam-correo').value   = '';
     document.getElementById('fam-principal').checked = false;
     cargarFamiliares();
@@ -905,7 +905,7 @@ async function guardarHorarioIntervalo(event) {
       id_paciente, id_medicamento, hora_inicio, intervalo_minutos: parseInt(intervalo_minutos),
       compartimento, dias
     });
-    mostrarToast(`${res.resultado?.horarios_creados ?? ''} horarios creados ✓`, 'ok');
+    mostrarToast(`${res.resultado?.horarios_creados ?? ''} horarios creados`, 'ok');
     nav('horarios');
   } catch (e) {
     errEl.textContent = e.message ?? 'Error al guardar';

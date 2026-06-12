@@ -1,20 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ══════════════════════════════════════════════
-   TOKENS
+   TOKENS — paleta seria: azul-grisáceo + morado-grisáceo,
+   fondo blanco, bordes finos casi negros
 ══════════════════════════════════════════════ */
 :root{
-  --p:#6d28d9;--p1:#7c3aed;--p2:#8b5cf6;--p3:#a78bfa;--p4:#c4b5fd;--p5:#ede9fe;--p6:#f5f3ff;
-  --ink:#0f0a1e;--ink2:#3b3461;--ink3:#7c7aaa;--ink4:#b8b6d4;--ink5:#e8e6f8;
-  --white:#fff;--bg:#f2f0fb;
-  --go:#059669;--go-bg:#d1fae5;
-  --stop:#dc2626;--stop-bg:#fee2e2;
-  --warn:#d97706;--warn-bg:#fef3c7;
-  --info:#2563eb;--info-bg:#dbeafe;
-  --r4:4px;--r8:8px;--r12:12px;--r16:16px;--r20:20px;--r999:999px;
-  --sh:0 1px 3px rgba(109,40,217,.08),0 4px 16px rgba(109,40,217,.06);
-  --sh2:0 2px 8px rgba(109,40,217,.12),0 8px 32px rgba(109,40,217,.1);
-  --font:'Inter',system-ui,sans-serif;
+  /* Morado-grisáceo (acento secundario) */
+  --p:#4c4a63;--p1:#5b5878;--p2:#7f6c91;--p3:#9b90ad;--p4:#c8c6d6;--p5:#eceaf1;--p6:#f5f4f8;
+  /* Texto / líneas — casi negro */
+  --ink:#15151a;--ink2:#3f3a44;--ink3:#6b6b76;--ink4:#a7a7b0;--ink5:#d6d6dc;
+  --white:#fff;--bg:#fafafb;
+  /* Azul-grisáceo (acento primario) */
+  --blue:#3e5c76;--blue-soft:#e7ecf1;--blue-line:#33414d;
+  --go:#3f6e4f;--go-bg:#e3ede6;
+  --stop:#8a3b3b;--stop-bg:#f3e6e6;
+  --warn:#8a6a2f;--warn-bg:#f4eee0;
+  --info:#3e5c76;--info-bg:#e7ecf1;
+  --r4:2px;--r8:3px;--r12:4px;--r16:6px;--r20:8px;--r999:3px;
+  --sh:0 1px 2px rgba(20,20,30,.05);
+  --sh2:0 2px 6px rgba(20,20,30,.08);
+  --font:'Source Sans 3',system-ui,sans-serif;
   --mono:'JetBrains Mono',monospace;
   --nav-h:64px;--top-h:58px;--side-w:256px;
 }
@@ -22,6 +27,35 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{height:100%;-webkit-text-size-adjust:100%}
 body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;height:100%;overflow:hidden}
+
+/* ══════════════════════════════════════════════
+   AJUSTES GENERALES — look más serio
+   - contenedores interactuables: tono azul-grisáceo/morado-grisáceo + borde fino casi negro
+   - contenedores no interactuables: sin borde o borde muy sutil
+══════════════════════════════════════════════ */
+.formulario, .card, .toma-item, .stat-card{
+  border-radius: var(--r12);
+  border:1px solid var(--ink5);
+  box-shadow:none;
+}
+/* Botones primarios: morado-grisáceo con borde casi negro */
+.boton-guardar, .btn-cuenta:not(.outline){
+  background:var(--p1);
+  border:1px solid var(--ink);
+  color:var(--white);
+}
+.boton-guardar:hover, .btn-cuenta:not(.outline):hover{
+  background:var(--p);
+}
+/* Botones outline: azul-grisáceo */
+.btn-cuenta.outline, .quick-btn{
+  background:var(--blue-soft);
+  border:1px solid var(--ink5);
+  color:var(--blue-line);
+}
+.btn-cuenta.outline:hover, .quick-btn:hover{
+  border-color:var(--ink);
+}
 
 /* ══════════════════════════════════════════════
    TOPBAR
@@ -37,17 +71,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14p
   background:var(--p1);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
-.titulo-toolbar{font-size:15px;font-weight:800;color:var(--ink);letter-spacing:-.02em}
+.titulo-toolbar{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
 .toolbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
 .rol-badge{
   font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
-  padding:3px 10px;border-radius:var(--r999);font-family:var(--mono);display:none;
+  padding:3px 10px;border-radius:var(--r8);font-family:var(--mono);display:none;
 }
 .rol-badge.visible{display:inline-block}
 .rol-badge.rol-medico  {background:var(--info-bg);color:var(--info)}
-.rol-badge.rol-admin   {background:#fef3c7;color:#92400e}
+.rol-badge.rol-admin   {background:var(--warn-bg);color:var(--warn)}
 .rol-badge.rol-paciente{background:var(--p5);color:var(--p)}
-.rol-badge.rol-familiar{background:#ecfdf5;color:var(--go)}
+.rol-badge.rol-familiar{background:var(--go-bg);color:var(--go)}
 .avatar-btn{
   width:34px;height:34px;border-radius:50%;
   background:var(--p5);border:none;
@@ -106,7 +140,7 @@ main{
 /* ══════════════════════════════════════════════
    TYPOGRAPHY
 ══════════════════════════════════════════════ */
-.titulo{font-size:24px;font-weight:800;letter-spacing:-.03em;color:var(--ink)}
+.titulo{font-size:24px;font-weight:700;letter-spacing:-.03em;color:var(--ink)}
 .greeting{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);font-family:var(--mono)}
 .section-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);font-family:var(--mono)}
 .empty-state{text-align:center;padding:48px 16px;color:var(--ink4);font-size:13px;font-weight:500;grid-column:1/-1}
@@ -137,7 +171,7 @@ main{
 .dispenser-status{
   display:flex;align-items:center;gap:6px;
   background:var(--white);border:1px solid var(--ink5);
-  border-radius:var(--r999);padding:5px 12px;
+  border-radius:var(--r8);padding:5px 12px;
   font-size:11px;font-weight:600;color:var(--ink3);
   font-family:var(--mono);white-space:nowrap;
 }
@@ -207,7 +241,7 @@ article.ultima .badge{color:var(--p3)}
 .toma-meta{font-size:11px;color:var(--ink3);font-family:var(--mono);margin-top:2px}
 .toma-estado{
   font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-  padding:3px 9px;border-radius:var(--r999);font-family:var(--mono);flex-shrink:0;
+  padding:3px 9px;border-radius:var(--r8);font-family:var(--mono);flex-shrink:0;
 }
 .estado-tomado   {background:var(--go-bg);  color:var(--go)}
 .estado-omitido  {background:var(--stop-bg);color:var(--stop)}
@@ -233,16 +267,16 @@ article.ultima .badge{color:var(--p3)}
 .horario-comp{
   width:38px;height:38px;border-radius:var(--r12);
   background:var(--p5);color:var(--p1);
-  font-weight:800;font-size:15px;font-family:var(--mono);
+  font-weight:700;font-size:15px;font-family:var(--mono);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 .horario-info{flex:1;min-width:0}
 .horario-nombre{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .horario-meta{font-size:11px;color:var(--ink3);font-family:var(--mono);margin-top:2px}
-.horario-hora{font-family:var(--mono);font-size:16px;font-weight:800;color:var(--p1);flex-shrink:0}
+.horario-hora{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--p1);flex-shrink:0}
 .badge-tipo{
   display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  padding:1px 6px;border-radius:var(--r999);font-family:var(--mono);vertical-align:middle;margin-left:5px;
+  padding:1px 6px;border-radius:var(--r8);font-family:var(--mono);vertical-align:middle;margin-left:5px;
 }
 .badge-tipo.rutina    {background:var(--info-bg);color:var(--info)}
 .badge-tipo.individual{background:var(--warn-bg);color:var(--warn)}
@@ -261,7 +295,7 @@ article.ultima .badge{color:var(--p3)}
   width:40px;height:40px;border-radius:50%;
   background:linear-gradient(135deg,var(--p4),var(--p2));
   display:flex;align-items:center;justify-content:center;
-  font-weight:800;color:var(--white);font-size:16px;flex-shrink:0;
+  font-weight:700;color:var(--white);font-size:16px;flex-shrink:0;
 }
 .paciente-info{flex:1;min-width:0}
 .paciente-nombre{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -298,9 +332,9 @@ article.ultima .badge{color:var(--p3)}
   display:flex;flex-direction:column;gap:16px;
   box-shadow:var(--sh);
 }
-.form-title{font-size:17px;font-weight:800;color:var(--ink);letter-spacing:-.02em}
+.form-title{font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
 .form-error{
-  background:var(--stop-bg);border:1px solid #fca5a5;
+  background:var(--stop-bg);border:1px solid var(--stop);
   border-radius:var(--r8);padding:10px 14px;
   font-size:12px;font-weight:600;color:var(--stop);
 }
@@ -340,7 +374,7 @@ article.ultima .badge{color:var(--p3)}
   display:flex;align-items:center;justify-content:center;
   width:50px;height:50px;border-radius:var(--r12);
   background:var(--bg);border:1.5px solid var(--ink5);
-  font-size:18px;font-weight:800;color:var(--ink3);font-family:var(--mono);
+  font-size:18px;font-weight:700;color:var(--ink3);font-family:var(--mono);
   transition:all .15s;
 }
 .comp-chip input:checked+span{background:var(--p5);border-color:var(--p1);color:var(--p1)}
@@ -379,20 +413,20 @@ article.ultima .badge{color:var(--p3)}
 .avatar-card{
   display:flex;align-items:center;gap:16px;
   background:var(--p1);border-radius:var(--r20);padding:22px;
-  box-shadow:0 4px 20px rgba(109,40,217,.3);
+  border:1px solid var(--ink);
 }
 .avatar-circle{
   width:54px;height:54px;border-radius:50%;
   background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
-.cuenta-nombre{font-size:17px;font-weight:800;color:var(--white);letter-spacing:-.02em}
+.cuenta-nombre{font-size:17px;font-weight:700;color:var(--white);letter-spacing:-.02em}
 .cuenta-email{font-size:11px;color:rgba(255,255,255,.7);font-family:var(--mono);margin-top:3px}
 .cuenta-rol{
   display:inline-block;margin-top:7px;
   font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
   background:rgba(255,255,255,.18);color:var(--white);
-  padding:2px 9px;border-radius:var(--r999);font-family:var(--mono);
+  padding:2px 9px;border-radius:var(--r8);font-family:var(--mono);
 }
 .cuenta-actions{display:flex;flex-direction:column;gap:8px}
 .btn-cuenta{
@@ -403,7 +437,7 @@ article.ultima .badge{color:var(--p3)}
 .btn-cuenta:hover{background:var(--p)}
 .btn-cuenta.outline{background:var(--white);border:1.5px solid var(--ink5);color:var(--p1)}
 .btn-cuenta.outline:hover{border-color:var(--p3);background:var(--p6)}
-.btn-cuenta.danger{background:var(--stop-bg);color:var(--stop);border:1px solid #fca5a5}
+.btn-cuenta.danger{background:var(--stop-bg);color:var(--stop);border:1px solid var(--stop)}
 
 /* ══════════════════════════════════════════════
    SPINNER + TOAST
@@ -419,7 +453,7 @@ article.ultima .badge{color:var(--p3)}
   position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;
   transform:translateX(-50%) translateY(8px);
   background:var(--ink);color:var(--white);
-  padding:10px 20px;border-radius:var(--r999);
+  padding:10px 20px;border-radius:var(--r8);
   font-size:13px;font-weight:600;opacity:0;pointer-events:none;
   transition:opacity .2s,transform .2s;white-space:nowrap;z-index:999;
 }
@@ -524,7 +558,7 @@ article.ultima .badge{color:var(--p3)}
   margin-bottom: 4px;
 }
 .hero h2 {
-  font-size: 22px; font-weight: 800;
+  font-size: 22px; font-weight: 700;
   color: var(--ink); letter-spacing: -.03em;
 }
 .hero p {
@@ -578,7 +612,7 @@ article.ultima .badge{color:var(--p3)}
   display: flex; flex-direction: column; gap: 4px;
   box-shadow: var(--sh);
 }
-.stat-value { font-size: 28px; font-weight: 800; color: var(--p1); letter-spacing: -.03em; font-family: var(--mono); }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--p1); letter-spacing: -.03em; font-family: var(--mono); }
 .stat-label { font-size: 11px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .06em; font-family: var(--mono); }
 
 /* ── ROL SELECTOR en registro ── */
@@ -645,7 +679,7 @@ body.rol-admin:not(.sin-sesion)  #resumen-medico { display: flex; }
 }
 .stat-value {
   font-size: 26px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--p1);
   letter-spacing: -.03em;
   font-family: var(--mono);
