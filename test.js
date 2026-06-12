@@ -1,23 +1,41 @@
-//text-conection.js
-require('dotenv').config(); 
+require('dotenv').config();
 const db = require('./db/database');
 
-async function test() {
+async function run() {
+
+  // ── 1. COLUMNA password_updated_at en cuentas (HU-40) ────────────
+  await safe(db.query(`
+    ALTER TABLE cuentas
+      ADD COLUMN password_updated_at DATETIME NULL DEFAULT NULL
+  `), 'cuentas: password_updated_at');
+
+  // ── 2. COLUMNA intervalo_minutos en horarios ──────────────────────
+  await safe(db.query(`
+    ALTER TABLE horarios
+      ADD COLUMN intervalo_minutos INT NULL DEFAULT NULL
+      COMMENT 'Si tiene valor, es alarma por intervalo. NULL = horario fijo'
+  `), 'horarios: intervalo_minutos');
+
+  // ── 3. COLUMNA firmware_version en dispositivos (HU-41) ──────────
+  await safe(db.query(`
+    ALTER TABLE dispositivos
+      ADD COLUMN firmware_version VARCHAR(20) NULL DEFAULT NULL
+  `), 'dispositivos: firmware_version');
+
+  console.log('\n✅ sync_db_v2 completo');
+  process.exit(0);
+}
+
+async function safe(promise, label) {
   try {
-    const [rows] = await db.query('SELECT 1 + 1 AS resultado');
-    console.log('✅ Conexión exitosa:', rows[0]);
-  } catch (err) {
-    console.error('❌ Error:', err.message);
+    await promise;
+    console.log(`✅ ${label}`);
+  } catch (e) {
+    console.log(`⚠️  ${label}: ${e.message}`);
   }
 }
 
-async function test2() {
-  const nombre = 'perrotaco'
-  const contraseña = 'computadora'
-  const correo = 'a23300698@ceti.mx'
-  const [rows] = await db.query('CALL registrarse(?, ?, ?)', [nombre, correo, contraseña]);
-  console.log(rows[0])
-}
-
-test2();
-console.log("Node.js funcionando");
+run().catch(e => {
+  console.error('ERROR FATAL:', e.message);
+  process.exit(1);
+});

@@ -45,4 +45,4 @@ async function obtenerRegistrosPorPaciente(id_paciente) {
   }
 }
 
-module.exports = { crear, obtenerPorPaciente, obtenerRegistrosPorPaciente };
+module.exports = { crear, obtenerPorPaciente, obtenerRegistrosPorPaciente }; 

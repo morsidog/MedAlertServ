@@ -631,3 +631,30 @@ body.rol-familiar:not(.sin-sesion) #resumen-paciente { display: flex; }
 /* Con sesión médico/admin → resumen médico (solo si NO hay sin-sesion) */
 body.rol-medico:not(.sin-sesion) #resumen-medico,
 body.rol-admin:not(.sin-sesion)  #resumen-medico { display: flex; }
+
+/* ── STAT CARDS (adherencia) ── */
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--ink5);
+  border-radius: var(--r12);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--sh);
+}
+.stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--p1);
+  letter-spacing: -.03em;
+  font-family: var(--mono);
+}
+.stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  font-family: var(--mono);
+}

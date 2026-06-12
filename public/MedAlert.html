@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="MedAlert.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="sin-sesion">
 
@@ -39,7 +40,7 @@
     </button>
 
     <!-- paciente / familiar -->
-    <button class="nav-item rol-paciente rol-familiar" data-view="horarios" onclick="nav('horarios')" type="button">
+    <button class="nav-item rol-paciente rol-familiar rol-medico rol-admin" data-view="horarios" onclick="nav('horarios')" type="button">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.6"/><path d="M10 6v4l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       <span>Horarios</span>
     </button>
@@ -186,7 +187,7 @@
     <section id="horarios" class="view">
       <div class="page-header">
         <h1 class="titulo">Horarios</h1>
-        <button class="btn-icon rol-medico rol-admin rol-paciente" id="btn-nuevo-horario" onclick="nav('nuevo-horario')" type="button" aria-label="Nuevo horario">
+        <button class="btn-icon" id="btn-nuevo-horario" onclick="nav('nuevo-horario')" type="button" aria-label="Nuevo horario">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
       </div>
@@ -264,6 +265,7 @@
         </div>
 
         <button class="boton-guardar" type="submit" id="btn-guardar-horario">Guardar</button>
+        <button class="btn-cuenta outline" type="button" onclick="nav('nuevo-horario-intervalo')" style="margin-top:8px">⏱ Programar por intervalo</button>
       </form>
     </section>
 
@@ -350,6 +352,135 @@
           <input type="text" id="m-color" placeholder="Ej. blanco" />
         </div>
         <button class="boton-guardar" type="submit" id="btn-guardar-med">Guardar medicamento</button>
+      </form>
+    </section>
+
+
+    <!-- ═══ DETALLE PACIENTE (médico) ═══ -->
+    <section id="detalle-paciente" class="view">
+      <div class="sec-header">
+        <button class="btn-back" onclick="navBack()" type="button">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4L6 9l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <h1 class="titulo" id="detalle-nombre">Paciente</h1>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tipo-tabs" style="max-width:100%">
+        <button class="tipo-tab active" id="tab-info"       onclick="tabDetalle('info')"       type="button">Información</button>
+        <button class="tipo-tab"        id="tab-familiares" onclick="tabDetalle('familiares')" type="button">Familiares</button>
+        <button class="tipo-tab"        id="tab-adherencia" onclick="tabDetalle('adherencia')" type="button">Adherencia</button>
+      </div>
+
+      <!-- Info -->
+      <div id="detalle-info">
+        <div class="formulario" id="detalle-info-card">
+          <p class="section-label">Cuenta del paciente</p>
+          <div id="cuenta-paciente-info" class="campo">
+            <span id="cuenta-paciente-texto" style="font-size:13px;color:var(--ink3)">Sin cuenta vinculada</span>
+          </div>
+          <div id="form-crear-cuenta-paciente" style="display:none">
+            <div class="campo"><label>Nombre</label><input type="text" id="cp-nombre" placeholder="Nombre completo"/></div>
+            <div class="campo"><label>Correo</label><input type="email" id="cp-correo" placeholder="correo@ejemplo.com"/></div>
+            <div class="campo"><label>Contraseña temporal</label><input type="password" id="cp-pass" placeholder="Mínimo 8 caracteres"/></div>
+            <div class="keypad">
+              <button class="btn-cuenta outline" onclick="document.getElementById('form-crear-cuenta-paciente').style.display='none'" type="button">Cancelar</button>
+              <button class="btn-cuenta" onclick="crearCuentaPaciente()" type="button">Crear cuenta</button>
+            </div>
+          </div>
+          <div id="form-vincular-cuenta-paciente" style="display:none">
+            <div class="campo"><label>Correo de la cuenta existente</label><input type="email" id="vc-correo" placeholder="correo@ejemplo.com"/></div>
+            <div class="keypad">
+              <button class="btn-cuenta outline" onclick="document.getElementById('form-vincular-cuenta-paciente').style.display='none'" type="button">Cancelar</button>
+              <button class="btn-cuenta" onclick="vincularCuentaPaciente()" type="button">Vincular</button>
+            </div>
+          </div>
+          <div class="keypad" id="btns-cuenta-paciente">
+            <button class="btn-cuenta outline" onclick="document.getElementById('form-vincular-cuenta-paciente').style.display='flex';document.getElementById('btns-cuenta-paciente').style.display='none'" type="button">Vincular cuenta existente</button>
+            <button class="btn-cuenta" onclick="document.getElementById('form-crear-cuenta-paciente').style.display='flex';document.getElementById('btns-cuenta-paciente').style.display='none'" type="button">Crear cuenta nueva</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Familiares -->
+      <div id="detalle-familiares" style="display:none">
+        <div class="formulario">
+          <p class="section-label">Agregar familiar por correo</p>
+          <div class="campo"><label>Correo del familiar</label><input type="email" id="fam-correo" placeholder="familiar@ejemplo.com"/></div>
+          <label class="dia-chip" style="flex-direction:row;gap:8px;align-items:center">
+            <input type="checkbox" id="fam-principal"> <span style="border-radius:8px;width:auto;padding:0 12px">¿Es familiar principal?</span>
+          </label>
+          <button class="boton-guardar" onclick="vincularFamiliar()" type="button">Agregar familiar</button>
+        </div>
+        <p class="section-label" style="margin-top:8px">Familiares vinculados</p>
+        <ul id="familiares-list" class="tomas-list">
+          <li class="empty-state">Sin familiares vinculados.</li>
+        </ul>
+      </div>
+
+      <!-- Adherencia Chart.js (HU-32) -->
+      <div id="detalle-adherencia" style="display:none">
+        <div class="formulario">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <p class="section-label">Adherencia semanal</p>
+            <select id="filtro-semanas" class="filtro-select" onchange="cargarAdherencia()">
+              <option value="4">Último mes</option>
+              <option value="8">Últimas 8 semanas</option>
+              <option value="12">Últimas 12 semanas</option>
+            </select>
+          </div>
+          <canvas id="chart-adherencia" height="200"></canvas>
+          <div id="adherencia-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px"></div>
+        </div>
+        <button class="boton-guardar" onclick="exportarPDF()" type="button" style="margin-top:8px">📄 Exportar historial PDF</button>
+      </div>
+    </section>
+
+    <!-- ═══ NUEVO HORARIO INTERVALO ═══ -->
+    <section id="nuevo-horario-intervalo" class="view">
+      <div class="sec-header">
+        <button class="btn-back" onclick="navBack()" type="button">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4L6 9l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <h1 class="titulo">Horario por intervalo</h1>
+      </div>
+      <form class="formulario" onsubmit="guardarHorarioIntervalo(event)">
+        <div id="error-intervalo" class="form-error" style="display:none"></div>
+        <div class="campo"><label>Medicamento</label>
+          <select id="int-medicamento" required><option value="">Selecciona un medicamento</option></select>
+        </div>
+        <div class="campo"><label>Hora de inicio</label><input type="time" id="int-hora" required/></div>
+        <div class="campo"><label>Cada cuántas horas</label>
+          <select id="int-intervalo" required>
+            <option value="120">Cada 2 horas</option>
+            <option value="180">Cada 3 horas</option>
+            <option value="240">Cada 4 horas</option>
+            <option value="360">Cada 6 horas</option>
+            <option value="480" selected>Cada 8 horas</option>
+            <option value="720">Cada 12 horas</option>
+            <option value="1440">Una vez al día</option>
+          </select>
+        </div>
+        <div class="campo"><label>Días</label>
+          <div class="dias-grid">
+            <label class="dia-chip"><input type="checkbox" value="1" checked><span>L</span></label>
+            <label class="dia-chip"><input type="checkbox" value="2" checked><span>M</span></label>
+            <label class="dia-chip"><input type="checkbox" value="3" checked><span>X</span></label>
+            <label class="dia-chip"><input type="checkbox" value="4" checked><span>J</span></label>
+            <label class="dia-chip"><input type="checkbox" value="5" checked><span>V</span></label>
+            <label class="dia-chip"><input type="checkbox" value="6" checked><span>S</span></label>
+            <label class="dia-chip"><input type="checkbox" value="7" checked><span>D</span></label>
+          </div>
+        </div>
+        <div class="campo"><label>Compartimento</label>
+          <div class="compartimentos-grid">
+            <label class="comp-chip"><input type="radio" name="comp-int" value="1" required><span>1</span></label>
+            <label class="comp-chip"><input type="radio" name="comp-int" value="2"><span>2</span></label>
+            <label class="comp-chip"><input type="radio" name="comp-int" value="3"><span>3</span></label>
+            <label class="comp-chip"><input type="radio" name="comp-int" value="4"><span>4</span></label>
+          </div>
+        </div>
+        <button class="boton-guardar" type="submit">Guardar intervalo</button>
       </form>
     </section>
 

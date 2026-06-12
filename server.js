@@ -17,13 +17,15 @@ app.get('/', (req, res) => {
 });
 
 // ── Rutas API ─────────────────────────────────────────────────────
+app.use('/api/health',       require('./routes/health'));       // HU-39
 app.use('/api/auth',         require('./routes/auth'));
 app.use('/api/arduino',      require('./routes/arduino'));
 app.use('/api/pacientes',    require('./routes/pacientes'));
 app.use('/api/medicamentos', require('./routes/medicamentos'));
 app.use('/api/horarios',     require('./routes/horarios'));
 app.use('/api/tomas',        require('./routes/tomas'));
-app.use('/api/usuarios',     require('./routes/usuarios'));   // ← FCM token
+app.use('/api/usuarios',     require('./routes/usuarios'));
+app.use('/api/admin',        require('./routes/admin'));        // HU-43
 
 // ── Error handler ─────────────────────────────────────────────────
 app.use(require('./middlewares/errorHandler'));

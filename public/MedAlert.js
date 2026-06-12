@@ -12,10 +12,10 @@ const state = {
 
 // ─── Permisos por rol ─────────────────────────────────────────────
 const PERMISOS = {
-  admin:    ['mainmenu','horarios','nuevo-horario','pacientes','nuevo-paciente','medicamentos','nuevo-medicamento','historial','cuenta'],
-  medico:   ['mainmenu','horarios','nuevo-horario','pacientes','nuevo-paciente','medicamentos','nuevo-medicamento','historial','cuenta'],
-  paciente: ['mainmenu','horarios','nuevo-horario','historial','cuenta'],
-  familiar: ['mainmenu','horarios','nuevo-horario','historial','cuenta'],
+  admin:    ['mainmenu','horarios','nuevo-horario','nuevo-horario-intervalo','pacientes','nuevo-paciente','detalle-paciente','medicamentos','nuevo-medicamento','historial','cuenta'],
+  medico:   ['mainmenu','horarios','nuevo-horario','nuevo-horario-intervalo','pacientes','nuevo-paciente','detalle-paciente','medicamentos','nuevo-medicamento','historial','cuenta'],
+  paciente: ['mainmenu','horarios','nuevo-horario','nuevo-horario-intervalo','historial','cuenta'],
+  familiar: ['mainmenu','horarios','nuevo-horario','nuevo-horario-intervalo','historial','cuenta'],
 };
 
 function puedeVer(viewId) {
@@ -43,14 +43,16 @@ function nav(viewId) {
 
   // Cargar datos al entrar
   const loaders = {
-    mainmenu:          cargarInicio,
-    horarios:          cargarHorarios,
-    pacientes:         cargarPacientes,
-    medicamentos:      cargarMedicamentos,
-    historial:         cargarHistorial,
-    'nuevo-horario':   prepararFormHorario,
-    'nuevo-paciente':  () => {},
-    'nuevo-medicamento': () => {},
+    mainmenu:                    cargarInicio,
+    horarios:                    cargarHorarios,
+    pacientes:                   cargarPacientes,
+    medicamentos:                cargarMedicamentos,
+    historial:                   cargarHistorial,
+    'nuevo-horario':             prepararFormHorario,
+    'nuevo-horario-intervalo':   () => cargarMedicamentosSelectIntervalo(),
+    'nuevo-paciente':            () => {},
+    'nuevo-medicamento':         () => {},
+    'detalle-paciente':          () => {},
   };
   loaders[viewId]?.();
 }
@@ -103,7 +105,7 @@ async function cargarDashboardMedico() {
     }
     ul.innerHTML = state.pacientes.map(p => `
       <li>
-        <div class="paciente-card" onclick="verHistorialPaciente(${p.id}, '${p.nombre}')">
+        <div class="paciente-card" onclick="verDetallePaciente(${p.id}, '${p.nombre}')">
           <div class="paciente-avatar">${p.nombre.charAt(0).toUpperCase()}</div>
           <div class="paciente-info">
             <p class="paciente-nombre">${p.nombre}</p>
@@ -247,6 +249,12 @@ function setTipo(tipo) {
 // ─── NUEVO HORARIO ────────────────────────────────────────────────
 async function prepararFormHorario() {
   setTipo('rutina');   // siempre empieza en rutina
+  // Cargar también para intervalo
+  const meds = document.getElementById('int-medicamento');
+  if (meds && meds.options.length <= 1) cargarMedicamentosSelect().then(() => {
+    const sel = document.getElementById('h-medicamento');
+    if (sel) meds.innerHTML = sel.innerHTML;
+  });
   await cargarMedicamentosSelect();
   // Si es médico, cargar selector de pacientes
   const selPac = document.getElementById('h-paciente');
@@ -260,6 +268,13 @@ async function prepararFormHorario() {
     selPac.innerHTML = `<option value="${state.id_paciente}" selected>${state.usuario?.nombre}</option>`;
     selPac.closest('.campo').style.display = 'none';
   }
+}
+
+async function cargarMedicamentosSelectIntervalo() {
+  await cargarMedicamentosSelect();
+  const src  = document.getElementById('h-medicamento');
+  const dest = document.getElementById('int-medicamento');
+  if (src && dest) dest.innerHTML = src.innerHTML;
 }
 
 async function cargarMedicamentosSelect() {
@@ -332,7 +347,7 @@ function renderPacientes(pacientes) {
   }
   ul.innerHTML = pacientes.map(p => `
     <li>
-      <div class="paciente-card" onclick="verHistorialPaciente(${p.id}, '${p.nombre}')">
+      <div class="paciente-card" onclick="verDetallePaciente(${p.id}, '${p.nombre}')">
         <div class="paciente-avatar">${p.nombre.charAt(0).toUpperCase()}</div>
         <div class="paciente-info">
           <p class="paciente-nombre">${p.nombre}</p>
@@ -634,6 +649,268 @@ function colorPastilla(color) {
   const map = { blanco:'#f5f5f5', amarillo:'#fbbf24', rosado:'#f9a8d4',
                 azul:'#93c5fd', verde:'#6ee7b7', rojo:'#fca5a5', naranja:'#fdba74' };
   return map[color?.toLowerCase()] ?? 'var(--violet-light)';
+}
+
+
+// ─── VARIABLES DETALLE PACIENTE ───────────────────────────────────
+let _detallePacienteId   = null;
+let _detallePacienteNom  = '';
+let _chartAdherencia     = null;
+
+// ─── PERMISOS — agregar nuevas vistas ─────────────────────────────
+const _PERMISOS_EXTRA = {
+  'detalle-paciente':        ['medico','admin'],
+  'nuevo-horario-intervalo': ['medico','admin','paciente','familiar'],
+};
+
+// ─── DETALLE PACIENTE ─────────────────────────────────────────────
+async function verDetallePaciente(id, nombre) {
+  _detallePacienteId  = id;
+  _detallePacienteNom = nombre;
+  document.getElementById('detalle-nombre').textContent = nombre;
+  tabDetalle('info');
+  nav('detalle-paciente');
+}
+
+function tabDetalle(tab) {
+  ['info','familiares','adherencia'].forEach(t => {
+    document.getElementById('detalle-' + t).style.display    = t === tab ? 'flex' : 'none';
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'familiares') cargarFamiliares();
+  if (tab === 'adherencia') cargarAdherencia();
+}
+
+// ─── CUENTA DEL PACIENTE ──────────────────────────────────────────
+async function crearCuentaPaciente() {
+  const nombre     = document.getElementById('cp-nombre').value;
+  const correo     = document.getElementById('cp-correo').value;
+  const contraseña = document.getElementById('cp-pass').value;
+  if (!nombre || !correo || !contraseña) { mostrarToast('Completa todos los campos', 'error'); return; }
+  try {
+    await apiFetch(`/api/pacientes/${_detallePacienteId}/cuenta`, 'POST', { nombre, correo, contraseña });
+    mostrarToast('Cuenta creada ✓', 'ok');
+    document.getElementById('form-crear-cuenta-paciente').style.display = 'none';
+    document.getElementById('btns-cuenta-paciente').style.display       = 'flex';
+    document.getElementById('cuenta-paciente-texto').textContent        = correo;
+  } catch (e) { mostrarToast(e.message, 'error'); }
+}
+
+async function vincularCuentaPaciente() {
+  const correo = document.getElementById('vc-correo').value;
+  if (!correo) { mostrarToast('Ingresa el correo', 'error'); return; }
+  try {
+    await apiFetch(`/api/pacientes/${_detallePacienteId}/vincular-cuenta`, 'POST', { correo });
+    mostrarToast('Cuenta vinculada ✓', 'ok');
+    document.getElementById('form-vincular-cuenta-paciente').style.display = 'none';
+    document.getElementById('btns-cuenta-paciente').style.display          = 'flex';
+    document.getElementById('cuenta-paciente-texto').textContent           = correo;
+  } catch (e) { mostrarToast(e.message, 'error'); }
+}
+
+// ─── FAMILIARES ───────────────────────────────────────────────────
+async function cargarFamiliares() {
+  if (!_detallePacienteId) return;
+  try {
+    const res = await apiFetch(`/api/pacientes/${_detallePacienteId}/familiares`);
+    const ul  = document.getElementById('familiares-list');
+    const fams = res.familiares ?? [];
+    if (!fams.length) {
+      ul.innerHTML = '<li class="empty-state">Sin familiares vinculados.</li>';
+      return;
+    }
+    ul.innerHTML = fams.map(f => `
+      <li class="toma-item">
+        <div class="toma-icon pendiente" style="background:var(--p5);color:var(--p1)">F</div>
+        <div class="toma-info">
+          <p class="toma-nombre">${f.nombre} ${f.es_principal ? '⭐' : ''}</p>
+          <p class="toma-meta">${f.correo}</p>
+        </div>
+        <button class="btn-confirmar" style="background:var(--stop-bg);color:var(--stop)" onclick="desvincularFamiliar(${f.id})" type="button">Quitar</button>
+      </li>
+    `).join('');
+  } catch (_) {}
+}
+
+async function vincularFamiliar() {
+  const correo       = document.getElementById('fam-correo').value;
+  const es_principal = document.getElementById('fam-principal').checked;
+  if (!correo) { mostrarToast('Ingresa el correo del familiar', 'error'); return; }
+  try {
+    await apiFetch(`/api/pacientes/${_detallePacienteId}/familiares`, 'POST', { correo, es_principal });
+    mostrarToast('Familiar agregado ✓', 'ok');
+    document.getElementById('fam-correo').value   = '';
+    document.getElementById('fam-principal').checked = false;
+    cargarFamiliares();
+  } catch (e) { mostrarToast(e.message, 'error'); }
+}
+
+async function desvincularFamiliar(idFamiliar) {
+  try {
+    await apiFetch(`/api/pacientes/${_detallePacienteId}/familiares/${idFamiliar}`, 'DELETE');
+    mostrarToast('Familiar desvinculado', 'ok');
+    cargarFamiliares();
+  } catch (e) { mostrarToast(e.message, 'error'); }
+}
+
+// ─── ADHERENCIA CHART.JS (HU-32) ─────────────────────────────────
+async function cargarAdherencia() {
+  if (!_detallePacienteId) return;
+  const semanas = document.getElementById('filtro-semanas').value;
+  try {
+    const res  = await apiFetch(`/api/pacientes/${_detallePacienteId}/adherencia?semanas=${semanas}`);
+    const data = res.adherencia ?? [];
+    renderChartAdherencia(data);
+  } catch (_) {}
+}
+
+function renderChartAdherencia(data) {
+  const labels = data.map(d => 'Sem ' + String(d.semana).slice(-2));
+  const valores = data.map(d => d.porcentaje);
+  const ctx = document.getElementById('chart-adherencia').getContext('2d');
+
+  if (_chartAdherencia) _chartAdherencia.destroy();
+
+  _chartAdherencia = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Adherencia %',
+        data: valores,
+        backgroundColor: valores.map(v => v >= 80 ? 'rgba(5,150,105,0.7)' : v >= 50 ? 'rgba(217,119,6,0.7)' : 'rgba(220,38,38,0.7)'),
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        annotation: {}
+      },
+      scales: {
+        y: {
+          min: 0, max: 100,
+          ticks: { callback: v => v + '%' },
+          grid: { color: 'rgba(0,0,0,0.06)' }
+        },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Línea de referencia 80%
+  _chartAdherencia.options.plugins.annotation = {
+    annotations: {
+      linea80: {
+        type: 'line',
+        yMin: 80, yMax: 80,
+        borderColor: 'rgba(124,58,237,0.5)',
+        borderWidth: 2,
+        borderDash: [6, 4],
+        label: { content: '80%', display: true, position: 'end' }
+      }
+    }
+  };
+  _chartAdherencia.update();
+
+  // Stats
+  const prom = valores.length ? (valores.reduce((a,b)=>a+b,0)/valores.length).toFixed(1) : 0;
+  const mejor = valores.length ? Math.max(...valores) : 0;
+  document.getElementById('adherencia-stats').innerHTML = `
+    <div class="stat-card"><span class="stat-value">${prom}%</span><span class="stat-label">Promedio</span></div>
+    <div class="stat-card"><span class="stat-value">${mejor}%</span><span class="stat-label">Mejor semana</span></div>
+    <div class="stat-card"><span class="stat-value">${valores.length}</span><span class="stat-label">Semanas</span></div>
+  `;
+}
+
+// ─── EXPORTAR PDF (HU-34) ─────────────────────────────────────────
+async function exportarPDF() {
+  if (!_detallePacienteId) return;
+  try {
+    const hasta = hoyISO();
+    const desde = new Date(Date.now() - 30*86400000).toISOString().split('T')[0];
+    const res   = await apiFetch(`/api/pacientes/${_detallePacienteId}/historial?desde=${desde}&hasta=${hasta}&pagina=1&por_pagina=200`);
+    const tomas = res.tomas ?? [];
+
+    // Generar HTML para imprimir como PDF
+    const tomadas   = tomas.filter(t => t.estado === 'tomado').length;
+    const total     = tomas.length;
+    const pct       = total ? ((tomadas/total)*100).toFixed(1) : 0;
+
+    const filas = tomas.map(t => `
+      <tr>
+        <td>${formatFechaHora(t.fecha_programada)}</td>
+        <td>${t.medicamento}</td>
+        <td>${t.estado}</td>
+        <td>${t.metodo ?? '—'}</td>
+        <td>${t.nivel_escalamiento}</td>
+      </tr>
+    `).join('');
+
+    const html = `
+      <html><head><title>Historial ${_detallePacienteNom}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 24px; font-size: 12px; }
+        h1 { color: #7c3aed; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th { background: #7c3aed; color: white; padding: 8px; text-align: left; }
+        td { padding: 6px 8px; border-bottom: 1px solid #e5e5e5; }
+        .stats { display: flex; gap: 24px; margin: 16px 0; }
+        .stat { background: #f5f3ff; padding: 12px 16px; border-radius: 8px; }
+        .stat-n { font-size: 24px; font-weight: bold; color: #7c3aed; }
+      </style></head>
+      <body>
+        <h1>MedAlert — Historial de tomas</h1>
+        <p><strong>Paciente:</strong> ${_detallePacienteNom}</p>
+        <p><strong>Período:</strong> ${desde} al ${hasta}</p>
+        <div class="stats">
+          <div class="stat"><div class="stat-n">${pct}%</div><div>Adherencia</div></div>
+          <div class="stat"><div class="stat-n">${tomadas}</div><div>Tomadas</div></div>
+          <div class="stat"><div class="stat-n">${total - tomadas}</div><div>No tomadas</div></div>
+        </div>
+        <table>
+          <thead><tr><th>Fecha</th><th>Medicamento</th><th>Estado</th><th>Método</th><th>Nivel</th></tr></thead>
+          <tbody>${filas}</tbody>
+        </table>
+      </body></html>
+    `;
+
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.print();
+  } catch (e) { mostrarToast('Error al generar PDF', 'error'); }
+}
+
+// ─── HORARIO POR INTERVALO ────────────────────────────────────────
+async function guardarHorarioIntervalo(event) {
+  event.preventDefault();
+  const errEl = document.getElementById('error-intervalo');
+  errEl.style.display = 'none';
+
+  const id_medicamento     = document.getElementById('int-medicamento').value;
+  const hora_inicio        = document.getElementById('int-hora').value;
+  const intervalo_minutos  = document.getElementById('int-intervalo').value;
+  const compartimento      = document.querySelector('input[name="comp-int"]:checked')?.value;
+  const dias               = [...document.querySelectorAll('#nuevo-horario-intervalo input[type="checkbox"]:checked')]
+                              .map(c => c.value).join(',');
+  const id_paciente        = state.id_paciente;
+
+  if (!dias) { errEl.textContent = 'Selecciona al menos un día'; errEl.style.display='block'; return; }
+
+  try {
+    const res = await apiFetch('/api/horarios/intervalo', 'POST', {
+      id_paciente, id_medicamento, hora_inicio, intervalo_minutos: parseInt(intervalo_minutos),
+      compartimento, dias
+    });
+    mostrarToast(`${res.resultado?.horarios_creados ?? ''} horarios creados ✓`, 'ok');
+    nav('horarios');
+  } catch (e) {
+    errEl.textContent = e.message ?? 'Error al guardar';
+    errEl.style.display = 'block';
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────
