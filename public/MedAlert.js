@@ -234,12 +234,24 @@ function renderHorarios(horarios) {
   }
   ul.innerHTML = horarios.map(h => {
     const esIndividual = h.una_sola_vez || h.fecha_especifica;
-    const subtitulo = esIndividual
-      ? (h.fecha_especifica ? formatFecha(h.fecha_especifica) : 'individual')
-      : diasLabel(h.dias);
-    const tipo = esIndividual
-      ? '<span class="badge-tipo individual">individual</span>'
-      : '<span class="badge-tipo rutina">rutina</span>';
+    const esIntervalo  = h.es_intervalo || h.intervalo_minutos;
+    let subtitulo;
+    let tipo;
+    if (esIndividual) {
+      subtitulo = h.fecha_especifica ? formatFecha(h.fecha_especifica) : 'individual';
+      tipo = '<span class="badge-tipo individual">individual</span>';
+    } else if (esIntervalo) {
+      subtitulo = `cada ${h.intervalo_minutos / 60}h · ${diasLabel(h.dias)}`;
+      tipo = '<span class="badge-tipo rutina">intervalo</span>';
+    } else {
+      subtitulo = diasLabel(h.dias);
+      tipo = '<span class="badge-tipo rutina">rutina</span>';
+    }
+
+    const btnEliminar = esIntervalo
+      ? `<button class="btn-icon-sm" title="Eliminar todas las alarmas de este intervalo" onclick="eliminarHorario(${h.id}, true)" type="button">🗑</button>`
+      : `<button class="btn-icon-sm" title="Eliminar horario" onclick="eliminarHorario(${h.id}, false)" type="button">🗑</button>`;
+
     return `
     <li class="horario-item ${h.activo ? '' : 'horario-inactive'}">
       <div class="horario-comp">${h.compartimento}</div>
@@ -248,8 +260,25 @@ function renderHorarios(horarios) {
         <p class="horario-meta">${subtitulo} · ${h.activo ? 'activo' : 'inactivo'}</p>
       </div>
       <span class="horario-hora">${h.hora.substring(0,5)}</span>
+      ${btnEliminar}
     </li>`;
   }).join('');
+}
+
+async function eliminarHorario(id, esGrupo) {
+  const mensaje = esGrupo
+    ? '¿Eliminar todas las alarmas de este intervalo? Esto borrará todas las horas generadas por "cada N horas".'
+    : '¿Eliminar este horario?';
+  if (!confirm(mensaje)) return;
+
+  try {
+    const url = esGrupo ? `/api/horarios/${id}?grupo=true` : `/api/horarios/${id}`;
+    const res = await apiFetch(url, 'DELETE');
+    mostrarToast(esGrupo ? `${res.eliminados} alarmas eliminadas` : 'Horario eliminado', 'ok');
+    cargarHorarios();
+  } catch (e) {
+    mostrarToast(e.message ?? 'Error al eliminar', 'error');
+  }
 }
 
 

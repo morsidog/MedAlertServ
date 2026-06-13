@@ -18,7 +18,7 @@ async function crear(id_paciente, id_medicamento, hora, dias, compartimento, fec
 async function obtenerPorPaciente(id_paciente) {
   const [rows] = await db.query(
     `SELECT h.id, h.hora, h.dias, h.compartimento, h.activo,
-            h.fecha_especifica, h.una_sola_vez,
+            h.fecha_especifica, h.una_sola_vez, h.intervalo_minutos,
             m.id AS id_medicamento, m.nombre AS medicamento,
             m.dosis_mg, m.instrucciones, m.color_pastilla
        FROM horarios h
@@ -32,9 +32,9 @@ async function obtenerPorPaciente(id_paciente) {
 
 async function obtenerPorId(id) {
   const [rows] = await db.query(
-    `SELECT h.id, h.hora, h.dias, h.compartimento, h.activo,
-            h.fecha_especifica, h.una_sola_vez,
-            m.id AS id_medicamento, m.nombre AS medicamento,
+    `SELECT h.id, h.id_paciente, h.id_medicamento, h.hora, h.dias, h.compartimento, h.activo,
+            h.fecha_especifica, h.una_sola_vez, h.intervalo_minutos,
+            m.nombre AS medicamento,
             m.dosis_mg, m.instrucciones
        FROM horarios h
        JOIN medicamentos m ON m.id = h.id_medicamento
@@ -71,4 +71,32 @@ async function activar(id) {
   await db.query('UPDATE horarios SET activo = 1 WHERE id = ?', [id]);
 }
 
-module.exports = { crear, obtenerPorPaciente, obtenerPorId, verificarConflicto, desactivar, activar };
+async function eliminar(id) {
+  const [result] = await db.query('DELETE FROM horarios WHERE id = ?', [id]);
+  return result.affectedRows;
+}
+
+// Elimina todos los horarios que pertenecen al mismo "grupo de intervalo"
+// que el horario `id` — es decir, los que comparten paciente, medicamento,
+// compartimento, días e intervalo_minutos (todos creados juntos por
+// crear_horario_intervalo, solo difieren en la hora).
+async function eliminarGrupoIntervalo(id) {
+  const horario = await obtenerPorId(id);
+  if (!horario) return 0;
+  if (!horario.intervalo_minutos) {
+    // No es parte de un intervalo: eliminar solo este
+    return eliminar(id);
+  }
+  const [result] = await db.query(
+    `DELETE FROM horarios
+      WHERE id_paciente       = ?
+        AND id_medicamento    = ?
+        AND compartimento     = ?
+        AND dias              = ?
+        AND intervalo_minutos = ?`,
+    [horario.id_paciente, horario.id_medicamento, horario.compartimento, horario.dias, horario.intervalo_minutos]
+  );
+  return result.affectedRows;
+}
+
+module.exports = { crear, obtenerPorPaciente, obtenerPorId, verificarConflicto, desactivar, activar, eliminar, eliminarGrupoIntervalo };

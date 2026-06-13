@@ -71,7 +71,8 @@ async function obtenerHorarios(id_paciente) {
     ...h,
     dias:          h.fecha_especifica ? [] : String(h.dias).split(',').map(Number),
     una_sola_vez:  !!h.una_sola_vez,
-    tipo:          h.una_sola_vez ? 'individual' : 'rutina',
+    tipo:          h.una_sola_vez ? 'individual' : (h.intervalo_minutos ? 'intervalo' : 'rutina'),
+    es_intervalo:  !!h.intervalo_minutos,
   }));
 }
 
@@ -82,7 +83,8 @@ async function obtenerHorario(id) {
     ...h,
     dias:         h.fecha_especifica ? [] : String(h.dias).split(',').map(Number),
     una_sola_vez: !!h.una_sola_vez,
-    tipo:         h.una_sola_vez ? 'individual' : 'rutina',
+    tipo:         h.una_sola_vez ? 'individual' : (h.intervalo_minutos ? 'intervalo' : 'rutina'),
+    es_intervalo: !!h.intervalo_minutos,
   };
 }
 
@@ -96,4 +98,17 @@ async function activarHorario(id) {
   await horarioRepository.activar(id);
 }
 
-module.exports = { crearHorario, obtenerHorarios, obtenerHorario, desactivarHorario, activarHorario };
+// Elimina un horario. Si pertenece a un grupo de intervalo y se pide
+// eliminar el grupo completo, borra todas las filas relacionadas.
+async function eliminarHorario(id, grupoCompleto = false) {
+  await obtenerHorario(id); // valida que exista (404 si no)
+  if (grupoCompleto) {
+    return horarioRepository.eliminarGrupoIntervalo(id);
+  }
+  return horarioRepository.eliminar(id);
+}
+
+module.exports = {
+  crearHorario, obtenerHorarios, obtenerHorario,
+  desactivarHorario, activarHorario, eliminarHorario,
+};

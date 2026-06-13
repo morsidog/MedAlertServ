@@ -75,4 +75,15 @@ router.patch('/:id/activar', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// DELETE /api/horarios/:id — elimina un horario.
+// DELETE /api/horarios/:id?grupo=true — si es parte de un intervalo,
+// elimina todas las alarmas generadas por ese mismo "cada N horas".
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const grupoCompleto = req.query.grupo === 'true';
+    const eliminados = await horarioService.eliminarHorario(req.params.id, grupoCompleto);
+    res.json({ ok: true, eliminados, mensaje: 'Horario eliminado' });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;

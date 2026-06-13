@@ -8,7 +8,7 @@
   /* Morado-grisáceo (acento secundario) */
   --p:#99639b;--p1:#655f9b;--p2:#7c78a8;--p3:#9290ad;--p4:#c8c6d6;--p5:#eceaf1;--p6:#f5f4f8;
   /* Texto / líneas — casi negro */
-  --ink:#15151a;--ink2:#403552;--ink3:#72507a;--ink4:#ce94c6;--ink5:#c4b3eb;
+  --ink:#15151a;--ink2:#3f3450;--ink3:#72507a;--ink4:#ce94c6;--ink5:#c4b3eb;
   --white:#fff;--bg:#fafafb;
   /* Azul-grisáceo (acento primario) */
   --blue:#3e5c76;--blue-soft:#c3daf1;--blue-line:#33414d;
@@ -274,6 +274,12 @@ article.ultima .badge{color:var(--p3)}
 .horario-nombre{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .horario-meta{font-size:11px;color:var(--ink3);font-family:var(--mono);margin-top:2px}
 .horario-hora{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--p1);flex-shrink:0}
+.btn-icon-sm{
+  flex-shrink:0;width:30px;height:30px;border-radius:var(--r8);
+  background:var(--stop-bg);border:1px solid var(--ink5);color:var(--stop);
+  font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.btn-icon-sm:hover{border-color:var(--stop)}
 .badge-tipo{
   display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   padding:1px 6px;border-radius:var(--r8);font-family:var(--mono);vertical-align:middle;margin-left:5px;
