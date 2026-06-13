@@ -132,6 +132,11 @@ function verHistorialPaciente(idPaciente, nombre) {
 
 // ─── TOMAS HOY (paciente/familiar) ───────────────────────────────
 async function cargarTomasHoy() {
+  if (!state.id_paciente) {
+    document.getElementById('tomas-hoy').innerHTML =
+      '<li class="empty-state">Tu cuenta aún no está vinculada a un paciente. Pide a tu médico que la vincule.</li>';
+    return;
+  }
   const hoy = hoyISO();
   try {
     const res   = await apiFetch(`/api/pacientes/${state.id_paciente}/historial?desde=${hoy}&hasta=${hoy}&pagina=1&por_pagina=30`);
@@ -193,9 +198,16 @@ function actualizarCards(tomas) {
 // ─── HORARIOS ────────────────────────────────────────────────────
 async function cargarHorarios() {
   const idP = state.id_paciente;
-  if (!state.token || !idP) {
+  if (!state.token) {
     document.getElementById('horarios-list').innerHTML =
       '<li class="empty-state">Inicia sesión para ver los horarios.</li>';
+    return;
+  }
+  if (!idP) {
+    const msg = (state.rol === 'paciente' || state.rol === 'familiar')
+      ? 'Tu cuenta aún no está vinculada a un paciente. Pide a tu médico que la vincule.'
+      : 'Selecciona un paciente para ver sus horarios.';
+    document.getElementById('horarios-list').innerHTML = `<li class="empty-state">${msg}</li>`;
     return;
   }
   try {
@@ -317,6 +329,10 @@ async function guardarHorario(event) {
     await apiFetch('/api/horarios', 'POST', body);
     mostrarToast(_tipoHorario === 'rutina' ? 'Rutina guardada' : 'Toma programada', 'ok');
     setLoading(btn, false, label);
+    // Asegurar que el listado de horarios recargue el paciente correcto
+    // (médico/admin eligen el paciente en el formulario; sin esto,
+    // cargarHorarios() usaba state.id_paciente desactualizado o vacío)
+    state.id_paciente = id_paciente;
     // Resetear tipo a rutina para la próxima vez
     setTipo('rutina');
     nav('horarios');
@@ -443,8 +459,11 @@ async function cargarHistorial() {
     if (sel.value) idP = sel.value;
   }
   if (!state.token || !idP) {
+    const msg = (state.rol === 'paciente' || state.rol === 'familiar')
+      ? 'Tu cuenta aún no está vinculada a un paciente. Pide a tu médico que la vincule.'
+      : 'Selecciona un paciente o inicia sesión.';
     document.getElementById('historial-list').innerHTML =
-      '<li class="empty-state">Selecciona un paciente o inicia sesión.</li>';
+      `<li class="empty-state">${msg}</li>`;
     return;
   }
 
@@ -553,6 +572,8 @@ function logout() {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('mainmenu').classList.add('active');
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === 'mainmenu'));
+  // Limpiar nombre y saludo del panel de inicio
+  cargarInicio();
 }
 
 function guardarSesion(cuenta, token) {
@@ -563,7 +584,12 @@ function guardarSesion(cuenta, token) {
   state.usuario     = cuentaNorm;
   state.token       = token ?? null;
   state.rol         = rol;
-  state.id_paciente = cuenta.id_paciente ?? cuenta.id;
+  // IMPORTANTE: solo usar id_paciente si la cuenta está REALMENTE
+  // vinculada a un registro de paciente. Antes se usaba `cuenta.id`
+  // como respaldo, lo que generaba un id_paciente inválido (el id de
+  // la cuenta, no el del paciente) y provocaba error 403/500 al
+  // cargar historial/horarios para pacientes sin vincular.
+  state.id_paciente = (cuenta.id_paciente != null) ? cuenta.id_paciente : null;
   localStorage.setItem('ma_token',   token ?? '');
   localStorage.setItem('ma_usuario', JSON.stringify(cuentaNorm));
   aplicarRol(state.rol);
@@ -598,10 +624,20 @@ async function apiFetch(path, method = 'GET', body = null) {
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(`${API}${path}`, opts);
 
-  // Si el servidor devuelve 401, limpiar sesión
+  // Si el servidor devuelve 401 y SÍ había una sesión activa, expiró el token.
+  // Si no había token (ej. login con credenciales incorrectas), mostrar el
+  // mensaje real del servidor en vez de "Sesión expirada".
   if (res.status === 401) {
-    logout();
-    throw new Error('Sesión expirada');
+    if (state.token) {
+      logout();
+      throw new Error('Sesión expirada');
+    }
+    let msg = 'Credenciales incorrectas';
+    try {
+      const data = await res.json();
+      if (data?.error) msg = data.error;
+    } catch (_) { /* usar mensaje genérico */ }
+    throw new Error(msg);
   }
 
   let data;
@@ -926,7 +962,7 @@ window.addEventListener('load', () => {
       state.token       = token || null;
       state.usuario     = u;
       state.rol         = u.rol ?? 'paciente';
-      state.id_paciente = u.id_paciente ?? u.id;
+      state.id_paciente = (u.id_paciente != null) ? u.id_paciente : null;
     } catch (_) {
       localStorage.removeItem('ma_token');
       localStorage.removeItem('ma_usuario');

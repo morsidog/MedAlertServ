@@ -12,7 +12,9 @@ async function checkHorarios() {
   const ahora   = new Date();
   const horaHoy = `${pad(ahora.getHours())}:${pad(ahora.getMinutes())}:00`;
   const diaISO  = ahora.getDay() === 0 ? 7 : ahora.getDay(); // 1=lun…7=dom
-  const fechaHoy = ahora.toISOString().split('T')[0];         // "YYYY-MM-DD"
+  // fechaHoy en hora LOCAL (America/Mexico_City vía TZ), no UTC,
+  // para que coincida con horaHoy/diaISO cerca de medianoche
+  const fechaHoy = `${ahora.getFullYear()}-${pad(ahora.getMonth() + 1)}-${pad(ahora.getDate())}`;
 
   let horarios;
   try {

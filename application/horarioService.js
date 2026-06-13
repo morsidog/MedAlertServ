@@ -28,7 +28,11 @@ async function crearHorario(datos) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(datos.fecha_especifica)) {
       throw { status: 400, message: 'fecha_especifica debe tener formato YYYY-MM-DD' };
     }
-    if (new Date(datos.fecha_especifica) < new Date(new Date().toDateString())) {
+    // Comparar como strings "YYYY-MM-DD" en hora LOCAL para evitar el
+    // desfase UTC vs local que marcaba como "pasado" una fecha de hoy
+    const hoy = new Date();
+    const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+    if (datos.fecha_especifica < hoyStr) {
       throw { status: 400, message: 'fecha_especifica no puede ser en el pasado' };
     }
     fecha_especifica = datos.fecha_especifica;
