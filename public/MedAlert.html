@@ -191,6 +191,13 @@
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
       </div>
+      <!-- selector de paciente — visible solo para médico/admin/familiar -->
+      <div id="selector-paciente-hor" style="display:none" class="campo">
+        <label for="hor-paciente">Paciente</label>
+        <select id="hor-paciente" onchange="onCambioPacienteHorarios()">
+          <option value="">Selecciona un paciente</option>
+        </select>
+      </div>
       <ul id="horarios-list" class="horarios-list">
         <li class="empty-state">Sin horarios registrados.</li>
       </ul>
@@ -364,6 +371,10 @@
         </button>
         <h1 class="titulo" id="detalle-nombre">Paciente</h1>
       </div>
+
+      <button class="btn-cuenta outline" type="button" onclick="verHorariosPaciente(_detallePacienteId, _detallePacienteNom)" style="margin-bottom:10px">
+        Ver horarios y tomas
+      </button>
 
       <!-- Tabs -->
       <div class="tipo-tabs" style="max-width:100%">

@@ -74,6 +74,10 @@ function aplicarRol(rol) {
   // Selector de paciente en historial — visible para médico/admin/familiar
   const selectorHist = document.getElementById('selector-paciente-hist');
   selectorHist.style.display = ['medico','admin','familiar'].includes(rol) ? 'flex' : 'none';
+
+  // Selector de paciente en horarios — visible para médico/admin/familiar
+  const selectorHor = document.getElementById('selector-paciente-hor');
+  selectorHor.style.display = ['medico','admin','familiar'].includes(rol) ? 'flex' : 'none';
 }
 
 // ─── INICIO ───────────────────────────────────────────────────────
@@ -197,14 +201,20 @@ function actualizarCards(tomas) {
 
 // ─── HORARIOS ────────────────────────────────────────────────────
 async function cargarHorarios() {
-  const idP = state.id_paciente;
+  // Determinar qué paciente mostrar
+  let idP = state.id_paciente;
+  if (['medico','admin','familiar'].includes(state.rol)) {
+    const sel = document.getElementById('hor-paciente');
+    if (sel && sel.value) idP = sel.value;
+  }
+
   if (!state.token) {
     document.getElementById('horarios-list').innerHTML =
       '<li class="empty-state">Inicia sesión para ver los horarios.</li>';
     return;
   }
   if (!idP) {
-    const msg = (state.rol === 'paciente' || state.rol === 'familiar')
+    const msg = (state.rol === 'paciente')
       ? 'Tu cuenta aún no está vinculada a un paciente. Pide a tu médico que la vincule.'
       : 'Selecciona un paciente para ver sus horarios.';
     document.getElementById('horarios-list').innerHTML = `<li class="empty-state">${msg}</li>`;
@@ -350,8 +360,9 @@ async function cargarPacientes(silencioso = false) {
     const res = await apiFetch('/api/pacientes');
     state.pacientes = res.pacientes ?? [];
     if (!silencioso) renderPacientes(state.pacientes);
-    // Poblar selector del historial
+    // Poblar selectores del historial y horarios
     poblarSelectorPacientesHist(state.pacientes);
+    poblarSelectorPacientesHor(state.pacientes);
   } catch (_) {}
 }
 
@@ -382,6 +393,20 @@ function poblarSelectorPacientesHist(pacientes) {
   sel.innerHTML = '<option value="">Selecciona un paciente</option>' +
     pacientes.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
   if (state.id_paciente) sel.value = state.id_paciente;
+}
+
+function poblarSelectorPacientesHor(pacientes) {
+  const sel = document.getElementById('hor-paciente');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Selecciona un paciente</option>' +
+    pacientes.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
+  if (state.id_paciente) sel.value = state.id_paciente;
+}
+
+function onCambioPacienteHorarios() {
+  const sel = document.getElementById('hor-paciente');
+  if (sel.value) state.id_paciente = sel.value;
+  cargarHorarios();
 }
 
 async function guardarPaciente(event) {
@@ -706,6 +731,13 @@ async function verDetallePaciente(id, nombre) {
   document.getElementById('detalle-nombre').textContent = nombre;
   tabDetalle('info');
   nav('detalle-paciente');
+}
+
+function verHorariosPaciente(id, nombre) {
+  state.id_paciente = id;
+  const sel = document.getElementById('hor-paciente');
+  if (sel) sel.value = id;
+  nav('horarios');
 }
 
 function tabDetalle(tab) {
