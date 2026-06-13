@@ -163,7 +163,7 @@ function renderTomasHoy(tomas) {
         <p class="toma-nombre">${t.medicamento}</p>
         <p class="toma-meta">${formatHora(t.fecha_programada)}</p>
       </div>
-      ${t.estado === 'pendiente' && state.rol !== 'paciente' || t.estado === 'pendiente'
+      ${t.estado === 'pendiente'
         ? `<button class="btn-confirmar" onclick="confirmarToma(${t.id})" type="button">Confirmar</button>`
         : `<span class="toma-estado estado-${t.estado}">${t.estado}</span>`
       }
@@ -523,7 +523,7 @@ async function cargarHistorial() {
 
   const filtro = document.getElementById('filtro-estado').value;
   const hasta  = hoyISO();
-  const desde  = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+  const desde  = haceDiasISO(7);
 
   try {
     const res   = await apiFetch(`/api/pacientes/${idP}/historial?desde=${desde}&hasta=${hasta}&pagina=1&por_pagina=50`);
@@ -729,7 +729,19 @@ function diasLabel(dias) {
 function formatHora(iso)      { return iso ? new Date(iso).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) : '—'; }
 function formatFecha(iso)     { return iso ? new Date(iso).toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—'; }
 function formatFechaHora(iso) { return iso ? `${formatFecha(iso)} ${formatHora(iso)}` : '—'; }
-function hoyISO()             { return new Date().toISOString().split('T')[0]; }
+function hoyISO() {
+  // Usar fecha LOCAL (no toISOString, que da la fecha en UTC y puede
+  // adelantarse un día respecto a la hora de Guadalajara)
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function haceDiasISO(dias) {
+  // Igual que hoyISO pero retrocediendo `dias` días, en hora LOCAL
+  const d = new Date();
+  d.setDate(d.getDate() - dias);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 function mostrarError(el, msg){ el.textContent = msg; el.style.display = 'block'; }
 function setLoading(btn, on, label = '') {
   btn.disabled = on;
@@ -929,7 +941,7 @@ async function exportarPDF() {
   if (!_detallePacienteId) return;
   try {
     const hasta = hoyISO();
-    const desde = new Date(Date.now() - 30*86400000).toISOString().split('T')[0];
+    const desde = haceDiasISO(30);
     const res   = await apiFetch(`/api/pacientes/${_detallePacienteId}/historial?desde=${desde}&hasta=${hasta}&pagina=1&por_pagina=200`);
     const tomas = res.tomas ?? [];
 
