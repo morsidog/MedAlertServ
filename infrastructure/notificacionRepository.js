@@ -4,10 +4,17 @@ const db = require('../db/database');
 /**
  * Obtiene el token FCM de una cuenta específica
  */
-async function obtenerToken(id_cuenta) {
+async function obtenerToken(id_paciente) {
+  // id_paciente es el id de la tabla pacientes.
+  // El token FCM se guarda por id_cuenta (cuentas.id).
+  // Buscar la cuenta cuyo id_paciente coincide.
   const [rows] = await db.query(
-    'SELECT token FROM fcm_tokens WHERE id_cuenta = ?',
-    [id_cuenta]
+    `SELECT ft.token
+       FROM fcm_tokens ft
+       JOIN cuentas c ON c.id = ft.id_cuenta
+      WHERE c.id_paciente = ?
+      LIMIT 1`,
+    [id_paciente]
   );
   return rows[0]?.token ?? null;
 }
