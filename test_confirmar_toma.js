@@ -16,7 +16,7 @@ const db     = require('./db/database');
 // Ajustar si el servidor corre en otro puerto/host
 const SERVER_URL = process.env.TEST_SERVER_URL || 'http://localhost:3000';
 const DEVICE_ID    = 'DISP-001';
-const DEVICE_TOKEN = process.env.TEST_DEVICE_TOKEN || 'PEGA_AQUI_EL_TOKEN_DEL_DISPOSITIVO';
+const DEVICE_TOKEN = process.env.TEST_DEVICE_TOKEN || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MCwibm9tYnJlIjoiRVNQMzItRElTUC0wMDEiLCJjb3JyZW8iOiJkaXNwb3NpdGl2b0BtZWRhbGVydCIsInJvbCI6ImRpc3Bvc2l0aXZvIiwiaWF0IjoxNzgwNzczMzAyLCJleHAiOjE3ODEzNzgxMDJ9.hkn8K_K88K93s5MQKAwaAye7uHBvvOlto49Wy63uDEI';
 
 async function obtenerTomaPendiente() {
   const [rows] = await db.query(
