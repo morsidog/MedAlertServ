@@ -71,22 +71,24 @@ async function checkEscalamiento() {
 
   // ── Nivel 0 → 1 (t+5 min) ──────────────────────────────────────
   const nivel0 = await repo.obtenerTomasPendientesParaEscalar(5, 15, 0);
+  if (nivel0.length) console.log(`[Escalamiento] ${nivel0.length} toma(s) para nivel 1`);
   for (const toma of nivel0) {
     const datos = await repo.obtenerDatosToma(toma.id);
-    if (!datos) continue;
+    if (!datos) { console.log(`[Escalamiento] ⚠️ Sin datos para toma ${toma.id}`); continue; }
 
-    // Notificar al paciente — buscar su token
     const tokenPaciente = await repo.obtenerToken(datos.id_paciente);
-    await enviarNotificacion(
+    console.log(`[Escalamiento] Nivel 1 toma ${toma.id} — token paciente: ${tokenPaciente ? tokenPaciente.slice(0,20)+'...' : 'NINGUNO'}`);
+
+    const ok = await enviarNotificacion(
       tokenPaciente,
       `⏰ MedAlert — ${datos.nombre_paciente}`,
       `Es hora de tomar ${datos.medicamento} ${datos.dosis_mg}mg`,
       { id_toma: String(toma.id), nivel: '1' }
     );
-
+    console.log(`[Escalamiento] Nivel 1 → toma ${toma.id} — envío: ${ok ? '✅' : '❌'}`);
     await repo.actualizarNivel(toma.id, 1);
     await repo.registrarAlerta(toma.id, 1);
-    console.log(`[Escalamiento] Nivel 1 → toma ${toma.id}`);
+  }
   }
 
   // ── Nivel 1 → 2 (t+15 min) ─────────────────────────────────────
