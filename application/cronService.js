@@ -28,9 +28,17 @@ async function checkHorarios() {
     if (h.hora !== horaHoy) continue;
 
     // ── Decidir si toca hoy ──────────────────────────────────────
-    const esTocaHoy = h.fecha_especifica
-      ? String(h.fecha_especifica).startsWith(fechaHoy)   // toma individual
-      : String(h.dias).split(',').map(Number).includes(diaISO); // rutina
+    let esTocaHoy;
+    if (h.fecha_especifica) {
+      // mysql2 devuelve DATE como objeto Date (medianoche UTC).
+      // Extraer la fecha en hora local para comparar correctamente.
+      const fe = h.fecha_especifica instanceof Date
+        ? `${h.fecha_especifica.getFullYear()}-${pad(h.fecha_especifica.getMonth() + 1)}-${pad(h.fecha_especifica.getDate())}`
+        : String(h.fecha_especifica).slice(0, 10);
+      esTocaHoy = fe === fechaHoy;
+    } else {
+      esTocaHoy = String(h.dias).split(',').map(Number).includes(diaISO);
+    }
 
     if (!esTocaHoy) continue;
 
