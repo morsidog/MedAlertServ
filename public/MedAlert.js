@@ -772,6 +772,66 @@ async function verDetallePaciente(id, nombre) {
   document.getElementById('detalle-nombre').textContent = nombre;
   tabDetalle('info');
   nav('detalle-paciente');
+  // Cargar detalle del paciente para mostrar estado real de vinculación
+  await cargarDetalleCuentaPaciente(id);
+}
+
+async function cargarDetalleCuentaPaciente(id) {
+  try {
+    const res = await apiFetch(`/api/pacientes/${id}`);
+    const p   = res.paciente;
+    const correoVinculado = p?.cuenta_correo ?? null;
+    actualizarUICuentaPaciente(correoVinculado);
+  } catch (_) {
+    actualizarUICuentaPaciente(null);
+  }
+}
+
+function actualizarUICuentaPaciente(correoVinculado) {
+  const texto   = document.getElementById('cuenta-paciente-texto');
+  const btns    = document.getElementById('btns-cuenta-paciente');
+  const fCrear  = document.getElementById('form-crear-cuenta-paciente');
+  const fVinc   = document.getElementById('form-vincular-cuenta-paciente');
+
+  // Resetear formularios
+  if (fCrear) fCrear.style.display = 'none';
+  if (fVinc)  fVinc.style.display  = 'none';
+
+  if (correoVinculado) {
+    texto.innerHTML = `
+      <span style="display:flex;align-items:center;gap:6px;color:var(--go)">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="7" fill="var(--go-bg)"/>
+          <path d="M4 7l2 2 4-4" stroke="var(--go)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <strong>${correoVinculado}</strong>
+      </span>`;
+    if (btns) {
+      btns.innerHTML = `
+        <button class="btn-cuenta outline" type="button"
+          onclick="document.getElementById('form-vincular-cuenta-paciente').style.display='block';
+                   document.getElementById('btns-cuenta-paciente').style.display='none'">
+          Cambiar vinculación
+        </button>`;
+      btns.style.display = 'flex';
+    }
+  } else {
+    texto.textContent = 'Sin cuenta vinculada';
+    if (btns) {
+      btns.innerHTML = `
+        <button class="btn-cuenta outline" type="button"
+          onclick="document.getElementById('form-vincular-cuenta-paciente').style.display='block';
+                   document.getElementById('btns-cuenta-paciente').style.display='none'">
+          Vincular cuenta existente
+        </button>
+        <button class="btn-cuenta" type="button"
+          onclick="document.getElementById('form-crear-cuenta-paciente').style.display='block';
+                   document.getElementById('btns-cuenta-paciente').style.display='none'">
+          Crear cuenta nueva
+        </button>`;
+      btns.style.display = 'flex';
+    }
+  }
 }
 
 function verHorariosPaciente(id, nombre) {
@@ -801,9 +861,7 @@ async function crearCuentaPaciente() {
   try {
     await apiFetch(`/api/pacientes/${_detallePacienteId}/cuenta`, 'POST', { nombre, correo, contraseña });
     mostrarToast('Cuenta creada', 'ok');
-    document.getElementById('form-crear-cuenta-paciente').style.display = 'none';
-    document.getElementById('btns-cuenta-paciente').style.display       = 'flex';
-    document.getElementById('cuenta-paciente-texto').textContent        = correo;
+    actualizarUICuentaPaciente(correo);
   } catch (e) { mostrarToast(e.message, 'error'); }
 }
 
@@ -813,9 +871,7 @@ async function vincularCuentaPaciente() {
   try {
     await apiFetch(`/api/pacientes/${_detallePacienteId}/vincular-cuenta`, 'POST', { correo });
     mostrarToast('Cuenta vinculada', 'ok');
-    document.getElementById('form-vincular-cuenta-paciente').style.display = 'none';
-    document.getElementById('btns-cuenta-paciente').style.display          = 'flex';
-    document.getElementById('cuenta-paciente-texto').textContent           = correo;
+    actualizarUICuentaPaciente(correo);
   } catch (e) { mostrarToast(e.message, 'error'); }
 }
 

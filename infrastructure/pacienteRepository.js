@@ -28,9 +28,13 @@ async function obtenerTodos(id_medico) {
 
 async function obtenerPorId(id) {
   const [rows] = await db.query(
-    `SELECT id, nombre, fecha_nacimiento, diagnostico,
-            dispositivo_id, activo, creado_en
-       FROM pacientes WHERE id = ?`,
+    `SELECT p.id, p.nombre, p.fecha_nacimiento, p.diagnostico,
+            p.dispositivo_id, p.activo, p.creado_en,
+            c.id   AS cuenta_id,
+            c.correo AS cuenta_correo
+       FROM pacientes p
+       LEFT JOIN cuentas c ON c.id_paciente = p.id AND c.tipo = 2
+      WHERE p.id = ?`,
     [id]
   );
   return rows[0] ?? null;
