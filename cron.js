@@ -11,7 +11,10 @@ cron.schedule('0 * * * * *', async () => {
 
 // Cada minuto — revisa escalamiento de alertas FCM
 cron.schedule('0 * * * * *', async () => {
-  try { await checkEscalamiento(); }
+  try {
+    console.log('[Cron] checkEscalamiento ejecutándose...');
+    await checkEscalamiento();
+  }
   catch (err) { console.error('[Cron] checkEscalamiento error:', err.message); }
 });
 
