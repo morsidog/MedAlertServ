@@ -1,13 +1,7 @@
 // infrastructure/notificacionRepository.js
 const db = require('../db/database');
 
-/**
- * Obtiene el token FCM de una cuenta específica
- */
 async function obtenerToken(id_paciente) {
-  // id_paciente es el id de la tabla pacientes.
-  // El token FCM se guarda por id_cuenta (cuentas.id).
-  // Buscar la cuenta cuyo id_paciente coincide.
   const [rows] = await db.query(
     `SELECT ft.token
        FROM fcm_tokens ft
@@ -19,9 +13,6 @@ async function obtenerToken(id_paciente) {
   return rows[0]?.token ?? null;
 }
 
-/**
- * Guarda o actualiza el token FCM de una cuenta
- */
 async function guardarToken(id_cuenta, token) {
   await db.query(
     `INSERT INTO fcm_tokens (id_cuenta, token)
@@ -31,9 +22,6 @@ async function guardarToken(id_cuenta, token) {
   );
 }
 
-/**
- * Obtiene todos los tokens FCM de familiares de un paciente
- */
 async function obtenerTokensFamiliares(id_paciente) {
   const [rows] = await db.query(
     `SELECT fp.id_familiar, ft.token, fp.es_principal
@@ -45,9 +33,6 @@ async function obtenerTokensFamiliares(id_paciente) {
   return rows;
 }
 
-/**
- * Obtiene el token FCM del médico de un paciente
- */
 async function obtenerTokenMedico(id_paciente) {
   const [rows] = await db.query(
     `SELECT ft.token
@@ -59,51 +44,25 @@ async function obtenerTokenMedico(id_paciente) {
   return rows[0]?.token ?? null;
 }
 
-/**
- * Obtiene los datos de una toma con info del paciente y medicamento
- */
 async function obtenerDatosToma(id_toma) {
   const [rows] = await db.query(
-    `SELECT t.id, t.estado, t.fecha_programada, t.nivel_escalamiento,
-            t.id_paciente,
+    `SELECT t.id, t.id_paciente, t.fecha_programada,
             p.nombre AS nombre_paciente,
-            m.nombre AS medicamento,
-            m.dosis_mg
+            m.nombre AS medicamento, m.dosis_mg
        FROM tomas t
-       JOIN horarios h    ON h.id = t.id_horario
+       JOIN horarios     h ON h.id = t.id_horario
        JOIN medicamentos m ON m.id = h.id_medicamento
-       JOIN pacientes p   ON p.id = t.id_paciente
+       JOIN pacientes    p ON p.id = t.id_paciente
       WHERE t.id = ?`,
     [id_toma]
   );
   return rows[0] ?? null;
 }
 
-/**
- * Actualiza el nivel de escalamiento de una toma
- */
 async function actualizarNivel(id_toma, nivel) {
-  await db.query(
-    'UPDATE tomas SET nivel_escalamiento = ? WHERE id = ?',
-    [nivel, id_toma]
-  );
+  await db.query('UPDATE tomas SET nivel_escalamiento = ? WHERE id = ?', [nivel, id_toma]);
 }
 
-/**
- * Marca una toma como omitida
- */
-async function marcarOmitida(id_toma) {
-  await db.query(
-    `UPDATE tomas
-        SET estado = 'omitido', nivel_escalamiento = 4
-      WHERE id = ? AND estado = 'pendiente'`,
-    [id_toma]
-  );
-}
-
-/**
- * Registra una alerta enviada
- */
 async function registrarAlerta(id_toma, nivel) {
   await db.query(
     'INSERT INTO alertas (id_toma, nivel) VALUES (?, ?)',
@@ -111,25 +70,41 @@ async function registrarAlerta(id_toma, nivel) {
   );
 }
 
-/**
- * Obtiene tomas pendientes que necesitan escalamiento
- * según los minutos transcurridos desde la hora programada
- */
-async function obtenerTomasPendientesParaEscalar(minutosMin, nivelActual) {
-  const [rows] = await db.query(
-    `SELECT t.id, t.id_paciente, t.fecha_programada, t.nivel_escalamiento
-       FROM tomas t
-      WHERE t.estado = 'pendiente'
-        AND t.nivel_escalamiento = ?
-        AND TIMESTAMPDIFF(MINUTE, t.fecha_programada, NOW()) >= ?`,
-    [nivelActual, minutosMin]
+async function marcarOmitida(id_toma) {
+  await db.query(
+    "UPDATE tomas SET estado = 'omitido' WHERE id = ? AND estado = 'pendiente'",
+    [id_toma]
   );
+}
+
+// Busca tomas que:
+// - están pendientes con el nivel actual
+// - llevan al menos minutosMin minutos desde la hora programada
+// - llevan MENOS de minutosMax minutos (para no saltarse niveles)
+// Si minutosMax es null, no hay techo (usado para omitida)
+async function obtenerTomasPendientesParaEscalar(minutosMin, minutosMax, nivelActual) {
+  let query, params;
+  if (minutosMax === null) {
+    query = `SELECT t.id, t.id_paciente FROM tomas t
+              WHERE t.estado = 'pendiente'
+                AND t.nivel_escalamiento = ?
+                AND TIMESTAMPDIFF(MINUTE, t.fecha_programada, NOW()) >= ?`;
+    params = [nivelActual, minutosMin];
+  } else {
+    query = `SELECT t.id, t.id_paciente FROM tomas t
+              WHERE t.estado = 'pendiente'
+                AND t.nivel_escalamiento = ?
+                AND TIMESTAMPDIFF(MINUTE, t.fecha_programada, NOW()) >= ?
+                AND TIMESTAMPDIFF(MINUTE, t.fecha_programada, NOW()) < ?`;
+    params = [nivelActual, minutosMin, minutosMax];
+  }
+  const [rows] = await db.query(query, params);
   return rows;
 }
 
 module.exports = {
   obtenerToken, guardarToken,
   obtenerTokensFamiliares, obtenerTokenMedico,
-  obtenerDatosToma, actualizarNivel, marcarOmitida,
-  registrarAlerta, obtenerTomasPendientesParaEscalar
+  obtenerDatosToma, actualizarNivel, registrarAlerta,
+  marcarOmitida, obtenerTomasPendientesParaEscalar
 };
