@@ -49,8 +49,11 @@ async function checkHorarios() {
 
     try {
       // 1. Crear toma (el SP evita duplicados)
+      // Pasar fecha como string UTC explícito para que MySQL la almacene
+      // en UTC y TIMESTAMPDIFF funcione correctamente con NOW() (que también es UTC).
+      const ahoraUTC = ahora.toISOString().replace('T', ' ').slice(0, 19);
       const id_toma = await cronRepository.registrarToma(
-        h.id_horario, h.id_paciente, ahora
+        h.id_horario, h.id_paciente, ahoraUTC
       );
       if (!id_toma) continue; // ya existía
 
