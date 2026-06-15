@@ -116,15 +116,14 @@ async function registrarAlerta(id_toma, nivel) {
  * Obtiene tomas pendientes que necesitan escalamiento
  * según los minutos transcurridos desde la hora programada
  */
-async function obtenerTomasPendientesParaEscalar(minutosMin, minutosMax, nivelActual) {
+async function obtenerTomasPendientesParaEscalar(minutosMin, nivelActual) {
   const [rows] = await db.query(
     `SELECT t.id, t.id_paciente, t.fecha_programada, t.nivel_escalamiento
        FROM tomas t
       WHERE t.estado = 'pendiente'
         AND t.nivel_escalamiento = ?
-        AND TIMESTAMPDIFF(MINUTE, t.fecha_programada, NOW()) >= ?
-        AND TIMESTAMPDIFF(MINUTE, t.fecha_programada, NOW()) < ?`,
-    [nivelActual, minutosMin, minutosMax]
+        AND TIMESTAMPDIFF(MINUTE, t.fecha_programada, NOW()) >= ?`,
+    [nivelActual, minutosMin]
   );
   return rows;
 }
