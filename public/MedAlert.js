@@ -183,7 +183,8 @@ async function confirmarToma(idToma) {
 
 function actualizarCards(tomas) {
   const pend = tomas.find(t => t.estado === 'pendiente');
-  const tom  = [...tomas].reverse().find(t => t.estado === 'tomado');
+  // tomas viene ordenado DESC por fecha_programada — el primero con 'tomado' es el más reciente
+  const tom  = tomas.find(t => t.estado === 'tomado');
   document.getElementById('prox-med').textContent   = pend?.medicamento ?? 'Sin pendientes';
   document.getElementById('prox-hora').textContent  = pend ? formatHora(pend.fecha_programada) : '—';
   document.getElementById('prox-fecha').textContent = pend ? formatFecha(pend.fecha_programada) : '—';
