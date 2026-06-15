@@ -6,12 +6,12 @@
 ══════════════════════════════════════════════ */
 :root{
   /* Morado-grisáceo (acento secundario) */
-  --p:#99639b;--p1:#655f9b;--p2:#7c78a8;--p3:#9290ad;--p4:#c8c6d6;--p5:#eceaf1;--p6:#f5f4f8;
+  --p:#4c4a63;--p1:#5b5878;--p2:#6f6c91;--p3:#9290ad;--p4:#c8c6d6;--p5:#eceaf1;--p6:#f5f4f8;
   /* Texto / líneas — casi negro */
-  --ink:#15151a;--ink2:#3f3450;--ink3:#72507a;--ink4:#ce94c6;--ink5:#c4b3eb;
+  --ink:#15151a;--ink2:#3a3a44;--ink3:#6b6b76;--ink4:#a7a7b0;--ink5:#d6d6dc;
   --white:#fff;--bg:#fafafb;
   /* Azul-grisáceo (acento primario) */
-  --blue:#3e5c76;--blue-soft:#c3daf1;--blue-line:#33414d;
+  --blue:#3e5c76;--blue-soft:#e7ecf1;--blue-line:#33414d;
   --go:#3f6e4f;--go-bg:#e3ede6;
   --stop:#8a3b3b;--stop-bg:#f3e6e6;
   --warn:#8a6a2f;--warn-bg:#f4eee0;
@@ -717,4 +717,36 @@ body.rol-admin:not(.sin-sesion)  #resumen-medico { display: flex; }
   text-transform: uppercase;
   color: var(--ink3);
   font-family: var(--mono);
+}
+
+/* ── Descarga APK en hero ── */
+.hero-download {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.hero-download-label {
+  font-size: 12px;
+  color: var(--ink3);
+  margin: 0;
+}
+.hero-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--go-bg);
+  color: var(--go);
+  border: 1px solid var(--go);
+  border-radius: var(--r8);
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .15s;
+}
+.hero-download-btn:hover {
+  background: #d0e8d6;
 }
