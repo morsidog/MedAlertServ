@@ -36,10 +36,9 @@ async function guardarToken(id_cuenta, token) {
  */
 async function obtenerTokensFamiliares(id_paciente) {
   const [rows] = await db.query(
-    `SELECT f.id_familiar, ft.token, fp.es_principal
+    `SELECT fp.id_familiar, ft.token, fp.es_principal
        FROM familiares_paciente fp
        JOIN fcm_tokens ft ON ft.id_cuenta = fp.id_familiar
-       JOIN cuentas f ON f.id = fp.id_familiar
       WHERE fp.id_paciente = ? AND ft.token IS NOT NULL`,
     [id_paciente]
   );
